@@ -1,7 +1,7 @@
-const STAYAPI_URL =
-  "https://api.stayapi.com/v1/google_hotels/search";
+/* Cloudflare Pages Function: functions/api/hotels.js */
+const STAYAPI_URL = "https://api.stayapi.com/v1/google_hotels/search";
 
-function corsHeaders() {
+function headers() {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -12,194 +12,46 @@ function corsHeaders() {
 }
 
 function json(data, status = 200) {
-  return new Response(
-    JSON.stringify(data),
-    {
-      status,
-      headers: corsHeaders()
-    }
-  );
+  return new Response(JSON.stringify(data), { status, headers: headers() });
+}
+
+function validDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 export async function onRequest(context) {
-  const request = context.request;
-  const env = context.env;
+  const { request, env } = context;
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers() });
+  if (request.method !== "GET") return json({ error: "Method not allowed." }, 405);
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders()
-    });
-  }
+  const incoming = new URL(request.url);
+  const location = incoming.searchParams.get("location")?.trim() || "";
+  const checkIn = incoming.searchParams.get("check_in") || "";
+  const checkOut = incoming.searchParams.get("check_out") || "";
+  const adults = Number(incoming.searchParams.get("adults") || "2");
+  const currency = (incoming.searchParams.get("currency") || "EUR").trim().toUpperCase();
+  const minRating = incoming.searchParams.get("min_rating");
 
-  if (request.method !== "GET") {
-    return json(
-      {
-        error: "Method not allowed."
-      },
-      405
-    );
-  }
+  if (!location) return json({ error: "Missing required parameter: location." }, 400);
+  if (!validDate(checkIn) || !validDate(checkOut)) return json({ error: "check_in and check_out must use YYYY-MM-DD." }, 400);
+  if (checkOut <= checkIn) return json({ error: "check_out must be after check_in." }, 400);
+  if (!Number.isInteger(adults) || adults < 1 || adults > 10) return json({ error: "adults must be an integer between 1 and 10." }, 400);
+  if (!/^[A-Z]{3}$/.test(currency)) return json({ error: "currency must be a three-letter currency code." }, 400);
+  if (!env.STAYAPI_KEY) return json({ error: "STAYAPI_KEY is missing from the Cloudflare Pages environment variables." }, 500);
+
+  const params = new URLSearchParams({ location, check_in: checkIn, check_out: checkOut, adults: String(adults), currency });
+  if (minRating !== null && /^([1-4](\.\d+)?|5(\.0+)?)$/.test(minRating)) params.set("min_rating", minRating);
 
   try {
-    const incoming = new URL(request.url);
-
-    const location =
-      incoming.searchParams.get("location")?.trim() || "";
-
-    const checkIn =
-      incoming.searchParams.get("check_in") || "";
-
-    const checkOut =
-      incoming.searchParams.get("check_out") || "";
-
-    const adults =
-      incoming.searchParams.get("adults") || "2";
-
-    const currency =
-      incoming.searchParams.get("currency") || "EUR";
-
-    if (!location) {
-      return json(
-        {
-          error: "Missing required parameter: location"
-        },
-        400
-      );
-    }
-
-    if (!checkIn) {
-      return json(
-        {
-          error: "Missing required parameter: check_in"
-        },
-        400
-      );
-    }
-
-    if (!checkOut) {
-      return json(
-        {
-          error: "Missing required parameter: check_out"
-        },
-        400
-      );
-    }
-
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!datePattern.test(checkIn)) {
-      return json(
-        {
-          error: `Invalid check_in date: ${checkIn}. Expected YYYY-MM-DD.`
-        },
-        400
-      );
-    }
-
-    if (!datePattern.test(checkOut)) {
-      return json(
-        {
-          error: `Invalid check_out date: ${checkOut}. Expected YYYY-MM-DD.`
-        },
-        400
-      );
-    }
-
-    if (checkOut <= checkIn) {
-      return json(
-        {
-          error: "check_out must be after check_in."
-        },
-        400
-      );
-    }
-
-    const adultsNumber = Number(adults);
-
-    if (
-      !Number.isInteger(adultsNumber) ||
-      adultsNumber < 1 ||
-      adultsNumber > 10
-    ) {
-      return json(
-        {
-          error: "adults must be an integer between 1 and 10."
-        },
-        400
-      );
-    }
-
-    const apiKey = env.STAYAPI_KEY;
-
-    if (!apiKey) {
-      return json(
-        {
-          error:
-            "STAYAPI_KEY is missing in Cloudflare Pages environment variables."
-        },
-        500
-      );
-    }
-
-    const params = new URLSearchParams();
-
-    params.set("location", location);
-    params.set("check_in", checkIn);
-    params.set("check_out", checkOut);
-    params.set("adults", String(adultsNumber));
-    params.set("currency", currency);
-
-    const upstreamUrl =
-      `${STAYAPI_URL}?${params.toString()}`;
-
-    const upstream = await fetch(upstreamUrl, {
-      method: "GET",
-      headers: {
-        "X-API-Key": apiKey,
-        "Accept": "application/json"
-      }
-    });
-
-    const bodyText = await upstream.text();
-
+    const upstream = await fetch(`${STAYAPI_URL}?${params}`, { headers: { "X-API-Key": env.STAYAPI_KEY, Accept: "application/json" } });
+    const text = await upstream.text();
     let body;
+    try { body = JSON.parse(text); } catch { body = { error: "StayAPI returned a non-JSON response." }; }
+    if (!upstream.ok) return json({ error: body.error || body.message || `StayAPI request failed (${upstream.status}).`, details: body }, upstream.status);
 
-    try {
-      body = JSON.parse(bodyText);
-    } catch {
-      body = {
-        error: "StayAPI returned a non-JSON response.",
-        status: upstream.status,
-        raw: bodyText.slice(0, 1000)
-      };
-    }
-
-    if (!upstream.ok) {
-      return json(
-        {
-          error:
-            body?.error ||
-            body?.message ||
-            `StayAPI request failed with HTTP ${upstream.status}.`,
-          status: upstream.status,
-          details: body
-        },
-        upstream.status
-      );
-    }
-
-    return json(body, 200);
-
+    /* Do not slice, map, or otherwise cap body.hotels here.  The entire documented response is passed through. */
+    return json(body);
   } catch (error) {
-    return json(
-      {
-        error: "Hotel search failed.",
-        details: String(
-          error?.message || error
-        )
-      },
-      502
-    );
+    return json({ error: "Hotel search failed.", details: String(error?.message || error) }, 502);
   }
 }
