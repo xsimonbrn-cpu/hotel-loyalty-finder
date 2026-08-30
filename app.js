@@ -621,12 +621,12 @@ const AMENITY_ICON = {
 
 const state = {
   chain: "all",
-  activePrograms:
-    new Set(),
-  amenities:
-    new Set(),
-  sort:
-    "effective"
+  activePrograms: new Set(),
+  amenities: new Set(),
+  stars: new Set(),
+  compare: new Set(),
+  cityCoords: null,
+  sort: "effective"
 };
 
 let liveHotels = [];
@@ -1652,12 +1652,31 @@ function enrich(
       0
     );
 
+  const loyaltyPoints =
+    program && Number.isFinite(Number(PERSONAL_POINTS?.[program]))
+      ? Number(PERSONAL_POINTS[program])
+      : null;
+
+  const distance =
+    state.cityCoords
+      ? distanceKm(
+          state.cityCoords.latitude,
+          state.cityCoords.longitude,
+          hotel.latitude,
+          hotel.longitude
+        )
+      : null;
+
   return {
     ...hotel,
 
     ...cls,
 
     status,
+
+    loyaltyPoints,
+
+    distanceKm: distance,
 
     benefits,
 
@@ -1740,6 +1759,18 @@ async function searchLive() {
     );
 
     return;
+  }
+
+  // Resolve the requested city once so hotel cards can show real distances.
+  state.cityCoords = null;
+  try {
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(city)}`, { headers: { "Accept-Language": "en" } });
+    if (geo.ok) {
+      const places = await geo.json();
+      if (places[0]) state.cityCoords = { latitude: Number(places[0].lat), longitude: Number(places[0].lon) };
+    }
+  } catch (error) {
+    console.warn("City geocoding unavailable:", error);
   }
 
   const params =
@@ -1948,6 +1979,35 @@ function selectedAmenityFilters() {
   );
 }
 
+function selectedStarFilters() {
+  return new Set(
+    [...document.querySelectorAll('input[data-filter="stars"]:checked')].map(input => Number(input.value))
+  );
+}
+
+function distanceKm(lat1, lon1, lat2, lon2) {
+  if ([lat1, lon1, lat2, lon2].some(v => v == null || !Number.isFinite(Number(v)))) return null;
+  const toRad = value => Number(value) * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function benefitScore(benefit) {
+  const text = String(benefit || '').toLowerCase();
+  if (/breakfast|f&b credit|food.*beverage/.test(text)) return 100;
+  if (/lounge/.test(text)) return 90;
+  if (/early check|late check|check-out|check out/.test(text)) return 80;
+  if (/upgrade|suite night/.test(text)) return 70;
+  if (/welcome|amenity|gift|drink/.test(text)) return 60;
+  return 20;
+}
+
+function topBenefits(benefits) {
+  return [...(benefits || [])].sort((a,b) => benefitScore(b) - benefitScore(a)).slice(0, 4);
+}
+
 /* =========================================================
    RENDER
 ========================================================= */
@@ -2029,6 +2089,14 @@ function render() {
           );
         }
       );
+  }
+
+  /* STAR FILTER — actual hotel classification */
+
+  const activeStars = selectedStarFilters();
+
+  if (activeStars.size) {
+    hotels = hotels.filter(hotel => hotel.stars != null && activeStars.has(Math.round(Number(hotel.stars))));
   }
 
   /* BENEFITS */
@@ -2281,11 +2349,7 @@ function render() {
             [];
 
           const selectedBenefits =
-            benefits
-              .slice(
-                0,
-                4
-              )
+            topBenefits(benefits)
               .map(
                 benefit =>
                   `
@@ -2483,16 +2547,26 @@ function render() {
                   ${
                     hotel.address
                       ? `
-                        <span>
-                          ${escapeHtml(
-                            hotel.address
-                          )}
+                        <span class="hotel-location">
+                          ${escapeHtml(hotel.address)}
                         </span>
                       `
                       : ""
                   }
 
+                  ${
+                    hotel.distanceKm != null
+                      ? `<span>${hotel.distanceKm < 10 ? hotel.distanceKm.toFixed(1) : Math.round(hotel.distanceKm)} km from city centre</span>`
+                      : ""
+                  }
+
                 </div>
+
+                ${
+                  hotel.program && hotel.loyaltyPoints != null && hotel.loyaltyPoints > 0
+                    ? `<div class="loyalty-line"><span class="loyalty-badge"><strong>${escapeHtml(hotel.program)}</strong> · <span class="loyalty-points">${hotel.loyaltyPoints.toLocaleString("en-GB")} points</span></span></div>`
+                    : ""
+                }
 
                 <div
                   class="hotel-amenities"
@@ -2610,6 +2684,10 @@ function render() {
                   class="hotel-actions"
                 >
 
+                  <button class="view-button compare-button ${state.compare.has(hotel.id) ? "selected" : ""}" type="button" data-compare-id="${escapeHtml(String(hotel.id || ""))}">
+                    ${state.compare.has(hotel.id) ? "✓ In compare" : "Compare"}
+                  </button>
+
                   ${officialWebsite}
 
                   ${booking}
@@ -2623,6 +2701,13 @@ function render() {
         }
       )
       .join("");
+
+  const compareBar = $("compareBar");
+  const compareCount = $("compareCount");
+  if (compareBar && compareCount) {
+    compareBar.hidden = state.compare.size === 0;
+    compareCount.textContent = `${state.compare.size} selected`;
+  }
 
   updateFilterCount();
 }
@@ -2642,6 +2727,8 @@ function updateFilterCount() {
       'input.amenity-filter:checked, input[data-filter="amenity"]:checked, input[data-type="amenity"]:checked'
     ).length;
 
+  const starChecks = document.querySelectorAll('input[data-filter="stars"]:checked').length;
+
   const extras =
     Number(
       Boolean(
@@ -2659,6 +2746,7 @@ function updateFilterCount() {
   const count =
     programChecks +
     amenityChecks +
+    starChecks +
     extras;
 
   if (
@@ -3424,6 +3512,53 @@ function setupBookingButtons() {
 }
 
 /* =========================================================
+   COMPARE
+========================================================= */
+
+function compareHotels() {
+  const selected = [];
+  for (const id of state.compare) {
+    const hotel = liveHotels.map(enrich).find(h => String(h.id || "") === String(id));
+    if (hotel) selected.push(hotel);
+  }
+  return selected;
+}
+
+function openCompare() {
+  const hotels = compareHotels();
+  if (hotels.length < 2) { alert("Select at least 2 hotels to compare."); return; }
+  const modal = $("compareModal");
+  const content = $("compareContent");
+  if (!modal || !content) return;
+  const rows = [
+    ["Hotel", h => `<span class="compare-hotel-name">${escapeHtml(h.name)}</span>`],
+    ["Classification", h => h.stars ? `${Math.round(h.stars)} stars` : "—"],
+    ["Guest rating", h => h.rating != null ? `${h.rating.toFixed(1)}${h.reviewCount ? ` · ${h.reviewCount.toLocaleString("en-GB")} reviews` : ""}` : "—"],
+    ["Loyalty", h => h.program ? `${escapeHtml(h.program)} · ${escapeHtml(h.status)}` : "—"],
+    ["Personal points", h => h.loyaltyPoints > 0 ? `${h.loyaltyPoints.toLocaleString("en-GB")} points` : "—"],
+    ["Distance", h => h.distanceKm != null ? `${h.distanceKm.toFixed(1)} km from city centre` : "—"],
+    ["Top benefits", h => topBenefits(h.benefits).map(b => escapeHtml(b)).join("<br>") || "—"],
+    ["Amenities", h => (h.amenities || []).join(" · ") || "—"],
+    ["Effective stay", h => h.total != null ? `€${Math.round(h.effective)} · €${Math.round(h.effectiveNightly)}/night` : "—"]
+  ];
+  content.innerHTML = `<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Compare</th>${hotels.map(h => `<th>${escapeHtml(h.name)}</th>`).join("")}</tr></thead><tbody>${rows.map(([label, fn]) => `<tr><th>${label}</th>${hotels.map(h => `<td>${fn(h)}</td>`).join("")}</tr>`).join("")}</tbody></table></div><div id="compareMap" class="compare-map"></div>`;
+  modal.hidden = false;
+  renderCompareMap(hotels);
+}
+
+function closeCompare() { if ($("compareModal")) $("compareModal").hidden = true; }
+
+function renderCompareMap(hotels) {
+  const points = hotels.filter(h => Number.isFinite(Number(h.latitude)) && Number.isFinite(Number(h.longitude)));
+  const el = $("compareMap");
+  if (!el || !window.L || !points.length) { if (el) el.innerHTML = `<div class="muted" style="padding:18px">Map unavailable because hotel coordinates are not available.</div>`; return; }
+  const map = L.map(el).setView([Number(points[0].latitude), Number(points[0].longitude)], 12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
+  const markers = points.map(h => L.marker([Number(h.latitude), Number(h.longitude)]).addTo(map).bindPopup(`<strong>${escapeHtml(h.name)}</strong>`));
+  if (markers.length > 1) { const group = L.featureGroup(markers); map.fitBounds(group.getBounds().pad(0.18)); }
+}
+
+/* =========================================================
    SETUP
 ========================================================= */
 
@@ -3652,6 +3787,46 @@ function setup() {
       }
     );
 
+  /* STAR FILTERS */
+
+  document.querySelectorAll('input[data-filter="stars"]').forEach(input => {
+    input.addEventListener("change", () => {
+      if (input.checked) state.stars.add(Number(input.value));
+      else state.stars.delete(Number(input.value));
+      updateFilterCount();
+      render();
+    });
+  });
+
+  /* COMPARE */
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest("[data-compare-id]");
+    if (button) {
+      const id = button.dataset.compareId;
+      if (state.compare.has(id)) state.compare.delete(id);
+      else if (state.compare.size < 3) state.compare.add(id);
+      else { alert("You can compare up to 3 hotels."); return; }
+      render();
+      return;
+    }
+
+    if (event.target.closest("#clearCompare")) {
+      state.compare.clear();
+      render();
+      return;
+    }
+
+    if (event.target.closest("#openCompare")) {
+      openCompare();
+      return;
+    }
+
+    if (event.target.closest("[data-close-compare]")) {
+      closeCompare();
+    }
+  });
+
   /* BENEFITS */
 
   $("onlyBenefits")?.addEventListener(
@@ -3699,7 +3874,7 @@ function setup() {
     () => {
       document
         .querySelectorAll(
-          'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"], input[data-type="amenity"]'
+          'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"], input[data-type="amenity"], input[data-filter="stars"]'
         )
         .forEach(
           input => {
@@ -3730,6 +3905,8 @@ function setup() {
       state.activePrograms.clear();
 
       state.amenities.clear();
+      state.stars.clear();
+      state.compare.clear();
 
       document
         .querySelectorAll(
