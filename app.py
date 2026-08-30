@@ -1,8 +1,37 @@
 import streamlit as st
-import pandas as pd
 
 # ============================================================
 # HOTEL LOYALTY FINDER
+# ============================================================
+#
+# Version 2
+#
+# Hotelprogramme:
+# Hilton
+# Marriott
+# IHG
+# Accor
+# Radisson
+# Meliá
+# GHA DISCOVERY
+# Wyndham
+# WorldHotels
+# Best Western
+#
+# AKTUELL:
+# - Test-Hoteldaten
+# - Loyalty-Datenbank
+# - persönliche Statuslevel
+# - Meliá 20%-Promotion
+# - Filter nach Hotelkette
+#
+# NÄCHSTER SCHRITT:
+# Echte Hotel-Datenquelle/API
+# ============================================================
+
+
+# ============================================================
+# SEITENKONFIGURATION
 # ============================================================
 
 st.set_page_config(
@@ -11,383 +40,796 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # ============================================================
-# DEINE LOYALTY-PROGRAMME UND STATUS
+# DEINE PERSÖNLICHEN STATUSLEVEL
+# ============================================================
+#
+# Diese Werte kannst du jederzeit ändern.
+#
+# Die App zeigt nur die Vorteile des hier eingetragenen
+# Statuslevels.
 # ============================================================
 
-LOYALTY_PROGRAMS = {
-    "Marriott Bonvoy": {
-        "status": "Platinum Elite",
-        "benefits": [
-            "Zimmer-Upgrade nach Verfügbarkeit",
-            "Late Check-out bis 16:00 Uhr nach Verfügbarkeit",
-            "Willkommensgeschenk",
-            "50 % Punktebonus",
-            "Lounge-Zugang bei teilnehmenden Marken",
-            "Frühstück bei ausgewählten Marken",
-            "5 Suite Night Awards pro Jahr"
-        ],
-        "brands": [
-            "JW Marriott",
-            "The Ritz-Carlton",
-            "St. Regis",
-            "W Hotels",
-            "Westin",
-            "Sheraton",
-            "Le Méridien",
-            "Renaissance",
-            "Marriott Hotels",
-            "Courtyard",
-            "Four Points",
-            "Aloft",
-            "Moxy",
-            "Element",
-            "AC Hotels"
-        ]
-    },
+MY_STATUS = {
+
+    "Hilton Honors": "Gold",
+
+    "Marriott Bonvoy": "Platinum Elite",
+
+    "IHG One Rewards": "Club Member",
+
+    "ALL - Accor Live Limitless": "Silver",
+
+    "Radisson Rewards": "Premium",
+
+    "MeliáRewards": "Gold",
+
+    "GHA DISCOVERY": "Gold",
+
+    "Wyndham Rewards": "Gold",
+
+    "WorldHotels Rewards": "Gold",
+
+    "Best Western Rewards": "Gold",
+}
+
+
+# ============================================================
+# PERSÖNLICHE PROMOTIONS
+# ============================================================
+#
+# Deine Meliá 20%-Promotion.
+#
+# 20 = 20 Prozent Rabatt.
+# ============================================================
+
+PERSONAL_PROMOTIONS = {
+
+    "MeliáRewards": 20
+
+}
+
+
+# ============================================================
+# LOYALTY-DATENBANK
+# ============================================================
+#
+# Hier liegen die Programme, Statuslevel und Vorteile.
+#
+# Die Struktur ist so aufgebaut, dass später weitere
+# Statuslevel problemlos ergänzt werden können.
+# ============================================================
+
+LOYALTY = {
+
+    # ========================================================
+    # HILTON
+    # ========================================================
 
     "Hilton Honors": {
-        "status": "Gold",
-        "benefits": [
-            "Kostenloses Frühstück bzw. Food & Beverage Credit",
-            "Zimmer-Upgrade nach Verfügbarkeit",
-            "5. Nacht bei Prämienaufenthalten kostenlos",
-            "80 % Punktebonus",
-            "Late Check-out nach Verfügbarkeit",
-            "Kostenloses Wasser bei ausgewählten Marken"
-        ],
+
         "brands": [
             "Waldorf Astoria",
             "Conrad",
             "LXR",
+            "NoMad",
+            "Signia Hilton",
             "Canopy",
             "Hilton",
             "Curio Collection",
             "DoubleTree",
+            "Tapestry Collection",
             "Embassy Suites",
             "Hilton Garden Inn",
             "Hampton",
             "Homewood Suites",
             "Home2 Suites",
-            "Tru",
-            "Tapestry Collection"
-        ]
+            "Tru"
+        ],
+
+        "statuses": {
+
+            "Member": [
+                "Member Rate",
+                "Punkte sammeln",
+                "Kostenloses WLAN"
+            ],
+
+            "Silver": [
+                "20 % Bonuspunkte",
+                "5. Nacht bei Prämienaufenthalten kostenlos",
+                "Kostenloses WLAN",
+                "Weitere Silver-Vorteile je nach Marke"
+            ],
+
+            "Gold": [
+                "80 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Frühstück außerhalb der USA bzw. Food & Beverage Credit in den USA",
+                "5. Nacht bei Prämienaufenthalten kostenlos",
+                "Kostenloses WLAN",
+                "Weitere Gold-Vorteile je nach Marke"
+            ],
+
+            "Diamond": [
+                "100 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Frühstück bzw. Food & Beverage Credit",
+                "Executive Lounge Zugang bei teilnehmenden Hotels",
+                "Premium WLAN",
+                "48-Stunden-Zimmergarantie",
+                "5. Nacht bei Prämienaufenthalten kostenlos"
+            ]
+        }
     },
 
-    "IHG One Rewards": {
-        "status": "Club Member",
-        "benefits": [
-            "Punkte sammeln",
-            "Member Rate",
-            "Kostenloses Internet",
-            "Late Check-out abhängig vom Hotel",
-            "Zimmer-Upgrade normalerweise nicht garantiert",
-            "Frühstück normalerweise nicht enthalten"
+
+    # ========================================================
+    # MARRIOTT
+    # ========================================================
+
+    "Marriott Bonvoy": {
+
+        "brands": [
+            "The Ritz-Carlton",
+            "St. Regis",
+            "JW Marriott",
+            "W Hotels",
+            "EDITION",
+            "The Luxury Collection",
+            "Marriott Hotels",
+            "Sheraton",
+            "Westin",
+            "Renaissance",
+            "Le Méridien",
+            "Autograph Collection",
+            "Tribute Portfolio",
+            "Delta Hotels",
+            "Gaylord Hotels",
+            "Courtyard",
+            "Four Points",
+            "Aloft",
+            "Moxy",
+            "Element",
+            "AC Hotels",
+            "Residence Inn",
+            "TownePlace Suites"
         ],
+
+        "statuses": {
+
+            "Member": [
+                "Member Rate",
+                "Kostenloses WLAN",
+                "Punkte sammeln"
+            ],
+
+            "Silver Elite": [
+                "10 % Bonuspunkte",
+                "Late Check-out nach Verfügbarkeit",
+                "Priority Late Check-out"
+            ],
+
+            "Gold Elite": [
+                "25 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit"
+            ],
+
+            "Platinum Elite": [
+                "50 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Suite-Upgrade nach Verfügbarkeit",
+                "Late Check-out bis 16:00 Uhr nach Verfügbarkeit",
+                "Willkommensgeschenk",
+                "Lounge-Zugang bei teilnehmenden Marken"
+            ],
+
+            "Titanium Elite": [
+                "75 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Suite-Upgrade nach Verfügbarkeit",
+                "Late Check-out bis 16:00 Uhr nach Verfügbarkeit",
+                "Willkommensgeschenk",
+                "Lounge-Zugang bei teilnehmenden Marken"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # IHG
+    # ========================================================
+
+    "IHG One Rewards": {
+
         "brands": [
             "InterContinental",
-            "Regent",
             "Six Senses",
+            "Regent",
             "Kimpton",
             "Vignette Collection",
             "Hotel Indigo",
             "Crowne Plaza",
+            "EVEN Hotels",
+            "voco",
             "Holiday Inn",
             "Holiday Inn Express",
             "Staybridge Suites",
             "Candlewood Suites"
-        ]
+        ],
+
+        "statuses": {
+
+            "Club Member": [
+                "Member Rate",
+                "Punkte sammeln",
+                "Kostenloses WLAN"
+            ],
+
+            "Silver Elite": [
+                "20 % Bonuspunkte",
+                "Member Rate",
+                "Kostenloses WLAN"
+            ],
+
+            "Gold Elite": [
+                "40 % Bonuspunkte",
+                "Member Rate",
+                "Kostenloses WLAN",
+                "Late Check-out nach Verfügbarkeit"
+            ],
+
+            "Platinum Elite": [
+                "60 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Member Rate",
+                "Kostenloses WLAN",
+                "Late Check-out nach Verfügbarkeit"
+            ],
+
+            "Diamond Elite": [
+                "100 % Bonuspunkte",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Frühstück bei teilnehmenden Marken",
+                "Member Rate",
+                "Kostenloses WLAN",
+                "Late Check-out nach Verfügbarkeit"
+            ]
+        }
     },
 
+
+    # ========================================================
+    # ACCOR
+    # ========================================================
+
     "ALL - Accor Live Limitless": {
-        "status": "Silver",
-        "benefits": [
-            "Kostenloses Internet",
-            "Late Check-out nach Verfügbarkeit",
-            "Zimmer-Upgrade nach Verfügbarkeit",
-            "Welcome Drink",
-            "10 % Bonus auf Reward Points",
-            "Silver Member Vorteile bei teilnehmenden Marken"
-        ],
+
         "brands": [
             "Raffles",
             "Fairmont",
             "Sofitel",
+            "Sofitel Legend",
             "MGallery",
             "Pullman",
             "Swissôtel",
             "Mövenpick",
+            "Grand Mercure",
             "Novotel",
             "Mercure",
             "Adagio",
             "ibis",
             "ibis Styles",
-            "ibis budget"
-        ]
+            "ibis budget",
+            "25hours",
+            "Mondrian",
+            "The Hoxton"
+        ],
+
+        "statuses": {
+
+            "Classic": [
+                "Member Rate",
+                "Premium WLAN",
+                "Reward Points sammeln"
+            ],
+
+            "Silver": [
+                "Welcome Drink",
+                "Priority Welcome",
+                "Late Check-out nach Verfügbarkeit",
+                "24 % Bonus auf Reward Points"
+            ],
+
+            "Gold": [
+                "Welcome Drink",
+                "Priority Welcome",
+                "Garantierte Zimmerverfügbarkeit nach Bedingungen",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Early Check-in oder Late Check-out",
+                "48 % Bonus auf Reward Points"
+            ],
+
+            "Platinum": [
+                "Welcome Drink",
+                "Zimmer-Upgrade",
+                "Suite Night Upgrade(s)",
+                "Lounge-Zugang bei teilnehmenden Hotels",
+                "Early Check-in",
+                "Late Check-out",
+                "76 % Bonus auf Reward Points"
+            ],
+
+            "Diamond": [
+                "Alle Platinum-Vorteile",
+                "Kostenloses Frühstück am Wochenende",
+                "Dining & Spa Rewards",
+                "Gold-Status für eine Person deiner Wahl",
+                "100 % Bonus auf Reward Points"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # RADISSON
+    # ========================================================
+
+    "Radisson Rewards": {
+
+        "brands": [
+            "Radisson Collection",
+            "Radisson Blu",
+            "Radisson",
+            "Radisson RED",
+            "Park Plaza",
+            "Park Inn by Radisson",
+            "Country Inn & Suites",
+            "art'otel"
+        ],
+
+        "statuses": {
+
+            "Club": [
+                "Member Rate",
+                "Bis zu 15 % Mitgliederrabatt",
+                "Priority Line",
+                "10 % Rabatt auf Speisen und Getränke"
+            ],
+
+            "Premium": [
+                "Member Rate",
+                "Bis zu 15 % Mitgliederrabatt",
+                "Kostenloses Zimmer-Upgrade nach Verfügbarkeit",
+                "Früher Check-in nach Verfügbarkeit",
+                "Später Check-out nach Verfügbarkeit",
+                "10 % Rabatt auf Speisen und Getränke"
+            ],
+
+            "VIP": [
+                "Kostenloses Zimmer-Upgrade nach Verfügbarkeit",
+                "Upgrade bis zur besten verfügbaren Kategorie nach Bedingungen",
+                "Früher Check-in",
+                "Später Check-out",
+                "Kostenloses Frühstück für zwei Personen",
+                "VIP-Zugang bei ausgewählten Hotels",
+                "15 % Rabatt auf Speisen und Getränke",
+                "24h VIP Contact Center"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # MELIÁ
+    # ========================================================
+
+    "MeliáRewards": {
+
+        "brands": [
+            "Gran Meliá",
+            "ME by Meliá",
+            "Paradisus",
+            "Meliá",
+            "INNSiDE",
+            "Zel",
+            "TRYP",
+            "Sol by Meliá"
+        ],
+
+        "statuses": {
+
+            "White": [
+                "Member Rate",
+                "Punkte sammeln",
+                "MeliáRewards Vorteile"
+            ],
+
+            "Silver": [
+                "Member Rate",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Später Check-out nach Verfügbarkeit",
+                "Weitere Silver-Vorteile je nach Marke"
+            ],
+
+            "Gold": [
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Weitere Gold-Vorteile je nach Marke",
+                "20 % persönliche Promotion berücksichtigt"
+            ],
+
+            "Platinum": [
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Weitere Platinum-Vorteile je nach Marke",
+                "20 % persönliche Promotion berücksichtigt"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # GHA DISCOVERY
+    # ========================================================
+
+    "GHA DISCOVERY": {
+
+        "brands": [
+            "Anantara",
+            "Anantara Hotels",
+            "Capella",
+            "Kempinski",
+            "NH Collection",
+            "NH Hotels",
+            "Tivoli",
+            "Avani",
+            "Viceroy",
+            "The Doyle Collection",
+            "Pan Pacific",
+            "Park Hyatt",
+            "Marriott? "
+        ],
+
+        "statuses": {
+
+            "Silver": [
+                "4 % D$ auf anrechenbare Ausgaben",
+                "Member Rate",
+                "Local Offers",
+                "Experiences",
+                "Kostenloses WLAN"
+            ],
+
+            "Gold": [
+                "5 % D$ auf anrechenbare Ausgaben",
+                "Member Rate",
+                "Local Offers",
+                "Experiences",
+                "Kostenloses WLAN"
+            ],
+
+            "Platinum": [
+                "6 % D$ auf anrechenbare Ausgaben",
+                "Member Rate",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Late Check-out bis 15:00 Uhr nach Verfügbarkeit",
+                "Welcome Amenity",
+                "Local Offers",
+                "Experiences",
+                "Kostenloses WLAN"
+            ],
+
+            "Titanium": [
+                "7 % D$ auf anrechenbare Ausgaben",
+                "Member Rate",
+                "Double Room Upgrade nach Verfügbarkeit",
+                "Early Check-in ab 11:00 Uhr nach Verfügbarkeit",
+                "Late Check-out bis 16:00 Uhr nach Verfügbarkeit",
+                "Welcome Amenity",
+                "Kostenloses Frühstück bei teilnehmenden Marken",
+                "Status Sharing",
+                "Kostenloses WLAN"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # WYNDHAM
+    # ========================================================
+
+    "Wyndham Rewards": {
+
+        "brands": [
+            "Wyndham Grand",
+            "Wyndham",
+            "TRYP",
+            "Esplendor",
+            "Dazzler",
+            "Ramada",
+            "Ramada Encore",
+            "Days Inn",
+            "Super 8",
+            "Baymont",
+            "Howard Johnson",
+            "La Quinta",
+            "Microtel",
+            "Registry Collection"
+        ],
+
+        "statuses": {
+
+            "Blue": [
+                "Member Rate",
+                "Punkte sammeln"
+            ],
+
+            "Gold": [
+                "Member Rate",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Preferred Room nach Verfügbarkeit",
+                "10 % Bonuspunkte"
+            ],
+
+            "Platinum": [
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Preferred Room nach Verfügbarkeit",
+                "15 % Bonuspunkte"
+            ],
+
+            "Diamond": [
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Preferred Room nach Verfügbarkeit",
+                "Suite Upgrade nach Verfügbarkeit",
+                "20 % Bonuspunkte"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # WORLDHOTELS
+    # ========================================================
+
+    "WorldHotels Rewards": {
+
+        "brands": [
+            "WorldHotels Luxury",
+            "WorldHotels Elite",
+            "WorldHotels Crafted",
+            "WorldHotels Distinctive",
+            "WorldHotels Collection"
+        ],
+
+        "statuses": {
+
+            "Classic": [
+                "Member Rate",
+                "Punkte sammeln",
+                "Kostenloses WLAN"
+            ],
+
+            "Gold": [
+                "Member Rate",
+                "Punktebonus",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit"
+            ],
+
+            "Platinum": [
+                "Member Rate",
+                "Punktebonus",
+                "Zimmer-Upgrade nach Verfügbarkeit",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit"
+            ]
+        }
+    },
+
+
+    # ========================================================
+    # BEST WESTERN
+    # ========================================================
+
+    "Best Western Rewards": {
+
+        "brands": [
+            "Best Western",
+            "Best Western Plus",
+            "Best Western Premier",
+            "BW Premier Collection",
+            "Executive Residency",
+            "SureStay",
+            "SureStay Plus",
+            "SureStay Collection"
+        ],
+
+        "statuses": {
+
+            "Blue": [
+                "10 Punkte pro US-Dollar",
+                "Punkte verfallen nicht",
+                "Member Rate"
+            ],
+
+            "Gold": [
+                "10 % Bonuspunkte",
+                "Kostenlose Flasche Wasser und Punkte bei Ankunft",
+                "Member Rate",
+                "Punkte verfallen nicht"
+            ],
+
+            "Platinum": [
+                "15 % Bonuspunkte",
+                "Kostenlose Flasche Wasser und Punkte bei Ankunft",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Member Rate"
+            ],
+
+            "Diamond": [
+                "30 % Bonuspunkte",
+                "Kostenlose Flasche Wasser und Punkte bei Ankunft",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Member Rate"
+            ],
+
+            "Diamond Select": [
+                "50 % Bonuspunkte",
+                "Kostenlose Flasche Wasser und Punkte bei Ankunft",
+                "Early Check-in nach Verfügbarkeit",
+                "Late Check-out nach Verfügbarkeit",
+                "Member Rate"
+            ]
+        }
     }
 }
 
 
 # ============================================================
-# HOTEL-DATENBANK
+# TEST-HOTEL-DATENBANK
+# ============================================================
+#
+# NUR TESTDATEN!
+#
+# Später wird diese Funktion durch eine echte Hotel-Suche
+# ersetzt.
 # ============================================================
 
 HOTELS = [
 
-    # ==================== BERLIN ====================
+    # ---------------- BERLIN ----------------
 
-    {
-        "name": "Berlin Marriott Hotel",
-        "brand": "Marriott Hotels",
-        "chain": "Marriott Bonvoy",
-        "city": "Berlin",
-        "address": "Inge-Beisheim-Platz 1",
-        "price": 180
-    },
+    ("Hilton Berlin", "Hilton", "Hilton Honors", "Berlin", 170),
+    ("Waldorf Astoria Berlin", "Waldorf Astoria", "Hilton Honors", "Berlin", 420),
+    ("Berlin Marriott Hotel", "Marriott Hotels", "Marriott Bonvoy", "Berlin", 180),
+    ("JW Marriott Hotel Berlin", "JW Marriott", "Marriott Bonvoy", "Berlin", 240),
+    ("InterContinental Berlin", "InterContinental", "IHG One Rewards", "Berlin", 160),
+    ("Hotel Indigo Berlin", "Hotel Indigo", "IHG One Rewards", "Berlin", 150),
+    ("Pullman Berlin Schweizerhof", "Pullman", "ALL - Accor Live Limitless", "Berlin", 145),
+    ("Novotel Berlin Mitte", "Novotel", "ALL - Accor Live Limitless", "Berlin", 120),
+    ("Radisson Collection Hotel Berlin", "Radisson Collection", "Radisson Rewards", "Berlin", 190),
+    ("Meliá Berlin", "Meliá", "MeliáRewards", "Berlin", 155),
+    ("NH Collection Berlin Mitte", "NH Collection", "GHA DISCOVERY", "Berlin", 145),
+    ("Best Western Premier Berlin", "Best Western Premier", "Best Western Rewards", "Berlin", 125),
 
-    {
-        "name": "JW Marriott Hotel Berlin",
-        "brand": "JW Marriott",
-        "chain": "Marriott Bonvoy",
-        "city": "Berlin",
-        "address": "Stauffenbergstraße 26",
-        "price": 240
-    },
+    # ---------------- LONDON ----------------
 
-    {
-        "name": "Hilton Berlin",
-        "brand": "Hilton",
-        "chain": "Hilton Honors",
-        "city": "Berlin",
-        "address": "Mohrenstraße 30",
-        "price": 170
-    },
+    ("Conrad London St. James", "Conrad", "Hilton Honors", "London", 350),
+    ("Hilton London Bankside", "Hilton", "Hilton Honors", "London", 280),
+    ("London Marriott Hotel County Hall", "Marriott Hotels", "Marriott Bonvoy", "London", 360),
+    ("St. Pancras Renaissance Hotel London", "Renaissance", "Marriott Bonvoy", "London", 330),
+    ("InterContinental London Park Lane", "InterContinental", "IHG One Rewards", "London", 400),
+    ("Hotel Indigo London", "Hotel Indigo", "IHG One Rewards", "London", 230),
+    ("Novotel London Blackfriars", "Novotel", "ALL - Accor Live Limitless", "London", 190),
+    ("Pullman London St Pancras", "Pullman", "ALL - Accor Live Limitless", "London", 210),
+    ("Radisson Blu Edwardian", "Radisson Blu", "Radisson Rewards", "London", 220),
+    ("Meliá White House", "Meliá", "MeliáRewards", "London", 200),
+    ("NH Collection London", "NH Collection", "GHA DISCOVERY", "London", 230),
+    ("Best Western London", "Best Western", "Best Western Rewards", "London", 120),
 
-    {
-        "name": "DoubleTree by Hilton Berlin Ku'damm",
-        "brand": "DoubleTree",
-        "chain": "Hilton Honors",
-        "city": "Berlin",
-        "address": "Los-Angeles-Platz 1",
-        "price": 150
-    },
+    # ---------------- NEW YORK ----------------
 
-    {
-        "name": "InterContinental Berlin",
-        "brand": "InterContinental",
-        "chain": "IHG One Rewards",
-        "city": "Berlin",
-        "address": "Budapester Straße 2",
-        "price": 160
-    },
+    ("Hilton Midtown", "Hilton", "Hilton Honors", "New York", 280),
+    ("Conrad New York Downtown", "Conrad", "Hilton Honors", "New York", 330),
+    ("New York Marriott Marquis", "Marriott Hotels", "Marriott Bonvoy", "New York", 320),
+    ("JW Marriott Essex House", "JW Marriott", "Marriott Bonvoy", "New York", 450),
+    ("InterContinental New York Barclay", "InterContinental", "IHG One Rewards", "New York", 270),
+    ("Kimpton Hotel Eventi", "Kimpton", "IHG One Rewards", "New York", 250),
+    ("Novotel New York Times Square", "Novotel", "ALL - Accor Live Limitless", "New York", 230),
+    ("Radisson Hotel New York", "Radisson", "Radisson Rewards", "New York", 190),
+    ("Meliá New York", "Meliá", "MeliáRewards", "New York", 220),
+    ("NH Collection New York", "NH Collection", "GHA DISCOVERY", "New York", 250),
 
-    {
-        "name": "Pullman Berlin Schweizerhof",
-        "brand": "Pullman",
-        "chain": "ALL - Accor Live Limitless",
-        "city": "Berlin",
-        "address": "Budapester Straße 25",
-        "price": 145
-    },
+    # ---------------- PARIS ----------------
 
-    {
-        "name": "Novotel Berlin Mitte",
-        "brand": "Novotel",
-        "chain": "ALL - Accor Live Limitless",
-        "city": "Berlin",
-        "address": "Fischerinsel 12",
-        "price": 120
-    },
+    ("Hilton Paris Opera", "Hilton", "Hilton Honors", "Paris", 320),
+    ("Hôtel du Louvre", "Hyatt", "GHA DISCOVERY", "Paris", 280),
+    ("Paris Marriott Opera Ambassador", "Marriott Hotels", "Marriott Bonvoy", "Paris", 280),
+    ("Renaissance Paris Arc de Triomphe", "Renaissance", "Marriott Bonvoy", "Paris", 300),
+    ("InterContinental Paris Le Grand", "InterContinental", "IHG One Rewards", "Paris", 420),
+    ("Hotel Indigo Paris", "Hotel Indigo", "IHG One Rewards", "Paris", 240),
+    ("Pullman Paris Tour Eiffel", "Pullman", "ALL - Accor Live Limitless", "Paris", 330),
+    ("Novotel Paris Centre Tour Eiffel", "Novotel", "ALL - Accor Live Limitless", "Paris", 190),
+    ("Meliá Paris La Défense", "Meliá", "MeliáRewards", "Paris", 180),
+    ("Radisson Blu Paris", "Radisson Blu", "Radisson Rewards", "Paris", 210),
 
+    # ---------------- TOKYO ----------------
 
-    # ==================== NEW YORK ====================
+    ("Hilton Tokyo", "Hilton", "Hilton Honors", "Tokyo", 300),
+    ("Conrad Tokyo", "Conrad", "Hilton Honors", "Tokyo", 420),
+    ("The Ritz-Carlton Tokyo", "The Ritz-Carlton", "Marriott Bonvoy", "Tokyo", 600),
+    ("JW Marriott Hotel Tokyo", "JW Marriott", "Marriott Bonvoy", "Tokyo", 500),
+    ("InterContinental Tokyo Bay", "InterContinental", "IHG One Rewards", "Tokyo", 280),
+    ("Hotel Indigo Tokyo Shibuya", "Hotel Indigo", "IHG One Rewards", "Tokyo", 260),
+    ("Pullman Tokyo Tamachi", "Pullman", "ALL - Accor Live Limitless", "Tokyo", 250),
+    ("Meliá Tokyo", "Meliá", "MeliáRewards", "Tokyo", 210),
+    ("Radisson Tokyo", "Radisson", "Radisson Rewards", "Tokyo", 220),
+    ("NH Collection Tokyo", "NH Collection", "GHA DISCOVERY", "Tokyo", 230),
 
-    {
-        "name": "New York Marriott Marquis",
-        "brand": "Marriott Hotels",
-        "chain": "Marriott Bonvoy",
-        "city": "New York",
-        "address": "1535 Broadway",
-        "price": 320
-    },
+    # ---------------- ISTANBUL ----------------
 
-    {
-        "name": "JW Marriott Essex House",
-        "brand": "JW Marriott",
-        "chain": "Marriott Bonvoy",
-        "city": "New York",
-        "address": "160 Central Park South",
-        "price": 450
-    },
-
-    {
-        "name": "Hilton Midtown",
-        "brand": "Hilton",
-        "chain": "Hilton Honors",
-        "city": "New York",
-        "address": "1335 6th Avenue",
-        "price": 280
-    },
-
-    {
-        "name": "Conrad New York Downtown",
-        "brand": "Conrad",
-        "chain": "Hilton Honors",
-        "city": "New York",
-        "address": "102 North End Avenue",
-        "price": 330
-    },
-
-    {
-        "name": "InterContinental New York Barclay",
-        "brand": "InterContinental",
-        "chain": "IHG One Rewards",
-        "city": "New York",
-        "address": "111 East 48th Street",
-        "price": 270
-    },
-
-    {
-        "name": "Kimpton Hotel Eventi",
-        "brand": "Kimpton",
-        "chain": "IHG One Rewards",
-        "city": "New York",
-        "address": "851 Avenue of the Americas",
-        "price": 250
-    },
-
-    {
-        "name": "Novotel New York Times Square",
-        "brand": "Novotel",
-        "chain": "ALL - Accor Live Limitless",
-        "city": "New York",
-        "address": "226 West 52nd Street",
-        "price": 230
-    },
-
-
-    # ==================== TOKYO ====================
-
-    {
-        "name": "The Ritz-Carlton Tokyo",
-        "brand": "The Ritz-Carlton",
-        "chain": "Marriott Bonvoy",
-        "city": "Tokyo",
-        "address": "9-7-1 Akasaka",
-        "price": 600
-    },
-
-    {
-        "name": "The Prince Gallery Tokyo Kioicho",
-        "brand": "Marriott Bonvoy",
-        "chain": "Marriott Bonvoy",
-        "city": "Tokyo",
-        "address": "1-2 Kioicho",
-        "price": 500
-    },
-
-    {
-        "name": "Conrad Tokyo",
-        "brand": "Conrad",
-        "chain": "Hilton Honors",
-        "city": "Tokyo",
-        "address": "1-9-1 Higashi-Shimbashi",
-        "price": 420
-    },
-
-    {
-        "name": "Hilton Tokyo",
-        "brand": "Hilton",
-        "chain": "Hilton Honors",
-        "city": "Tokyo",
-        "address": "6-6-2 Nishi-Shinjuku",
-        "price": 300
-    },
-
-    {
-        "name": "InterContinental Tokyo Bay",
-        "brand": "InterContinental",
-        "chain": "IHG One Rewards",
-        "city": "Tokyo",
-        "address": "1-16-2 Kaigan",
-        "price": 280
-    },
-
-    {
-        "name": "Hotel Indigo Tokyo Shibuya",
-        "brand": "Hotel Indigo",
-        "chain": "IHG One Rewards",
-        "city": "Tokyo",
-        "address": "2-25-12 Dogenzaka",
-        "price": 260
-    },
-
-    {
-        "name": "Pullman Tokyo Tamachi",
-        "brand": "Pullman",
-        "chain": "ALL - Accor Live Limitless",
-        "city": "Tokyo",
-        "address": "3-1-21 Shibaura",
-        "price": 250
-    },
-
-    {
-        "name": "Novotel Tokyo",
-        "brand": "Novotel",
-        "chain": "ALL - Accor Live Limitless",
-        "city": "Tokyo",
-        "address": "Tokyo Bay",
-        "price": 190
-    }
+    ("Hilton Istanbul Bosphorus", "Hilton", "Hilton Honors", "Istanbul", 150),
+    ("Conrad Istanbul Bosphorus", "Conrad", "Hilton Honors", "Istanbul", 170),
+    ("Istanbul Marriott Hotel Sisli", "Marriott Hotels", "Marriott Bonvoy", "Istanbul", 150),
+    ("JW Marriott Istanbul Bosphorus", "JW Marriott", "Marriott Bonvoy", "Istanbul", 220),
+    ("InterContinental Istanbul", "InterContinental", "IHG One Rewards", "Istanbul", 160),
+    ("Hotel Indigo Istanbul", "Hotel Indigo", "IHG One Rewards", "Istanbul", 130),
+    ("Novotel Istanbul Bosphorus", "Novotel", "ALL - Accor Live Limitless", "Istanbul", 120),
+    ("Meliá Istanbul", "Meliá", "MeliáRewards", "Istanbul", 110),
+    ("Radisson Blu Istanbul", "Radisson Blu", "Radisson Rewards", "Istanbul", 120),
+    ("NH Collection Istanbul", "NH Collection", "GHA DISCOVERY", "Istanbul", 130),
 ]
 
 
 # ============================================================
-# SPÄTERE LIVE-API
-# ============================================================
-#
-# HIER kann später eine echte Hotel-API angeschlossen werden.
-#
-# Beispiele:
-# - Amadeus
-# - Google Places
-# - Expedia
-# - Hotelbeds
-#
-# Die API sollte Hotelname, Marke, Kette, Stadt und Preis liefern.
+# HILFSFUNKTIONEN
 # ============================================================
 
-def get_hotels_from_live_api(city):
+def get_benefits(program, status):
 
-    # Hier später echte API einbauen.
-    # Aktuell verwenden wir die Testdaten.
+    if program not in LOYALTY:
+        return []
 
-    return [
-        hotel
-        for hotel in HOTELS
-        if hotel["city"] == city
-    ]
+    statuses = LOYALTY[program]["statuses"]
+
+    return statuses.get(
+        status,
+        []
+    )
 
 
-# ============================================================
-# LOYALTY-INFORMATIONEN
-# ============================================================
+def get_promotion(program):
 
-def get_loyalty_info(chain):
+    return PERSONAL_PROMOTIONS.get(
+        program,
+        0
+    )
 
-    if chain in LOYALTY_PROGRAMS:
 
-        program = LOYALTY_PROGRAMS[chain]
+def get_effective_price(price, program):
 
-        return {
-            "status": program["status"],
-            "benefits": program["benefits"]
-        }
+    discount = get_promotion(program)
 
-    return {
-        "status": "Kein Status",
-        "benefits": []
-    }
+    return price * (1 - discount / 100)
+
+
+def get_brand_match(program, brand):
+
+    if program not in LOYALTY:
+        return False
+
+    return brand in LOYALTY[program]["brands"]
 
 
 # ============================================================
@@ -397,8 +839,8 @@ def get_loyalty_info(chain):
 st.title("🏨 Hotel Loyalty Finder")
 
 st.write(
-    "Finde Hotels nach Stadt und Hotelkette "
-    "und sehe sofort deine persönlichen Statusvorteile."
+    "Finde Hotels nach Stadt, Hotelkette und deinem persönlichen "
+    "Loyalty-Status."
 )
 
 
@@ -408,46 +850,111 @@ st.write(
 
 st.sidebar.header("🔎 Suche")
 
-selected_city = st.sidebar.selectbox(
-    "Stadt auswählen",
-    ["Berlin", "New York", "Tokyo"]
+
+cities = sorted(
+    list(
+        set(
+            hotel[3]
+            for hotel in HOTELS
+        )
+    )
 )
+
+
+selected_city = st.sidebar.selectbox(
+    "Stadt",
+    cities
+)
+
+
+st.sidebar.divider()
 
 st.sidebar.subheader("Hotelketten")
 
-selected_chains = []
 
-for chain in LOYALTY_PROGRAMS:
+selected_programs = []
+
+for program in LOYALTY:
 
     checked = st.sidebar.checkbox(
-        chain,
+        program,
         value=True
     )
 
     if checked:
-        selected_chains.append(chain)
+        selected_programs.append(
+            program
+        )
 
 
 # ============================================================
-# HOTELS LADEN
+# STATUS-EINSTELLUNGEN
 # ============================================================
 
-hotels = get_hotels_from_live_api(selected_city)
+with st.sidebar.expander("💳 Meine Status"):
+
+    st.caption(
+        "Du kannst deine Statuslevel hier jederzeit ändern."
+    )
+
+    for program in LOYALTY:
+
+        possible_statuses = list(
+            LOYALTY[program]["statuses"].keys()
+        )
+
+        current_status = MY_STATUS.get(
+            program,
+            possible_statuses[0]
+        )
+
+        if current_status not in possible_statuses:
+            current_status = possible_statuses[0]
+
+        MY_STATUS[program] = st.selectbox(
+            program,
+            possible_statuses,
+            index=possible_statuses.index(
+                current_status
+            )
+        )
 
 
 # ============================================================
-# FILTER
+# MÄLIÁ PROMOTION
+# ============================================================
+
+with st.sidebar.expander("🎁 Meine Promotions"):
+
+    st.write(
+        f"MeliáRewards: "
+        f"**{PERSONAL_PROMOTIONS['MeliáRewards']} % Rabatt**"
+    )
+
+    st.caption(
+        "Dieser Rabatt wird bei Meliá-Hotels "
+        "automatisch in der Preisberechnung berücksichtigt."
+    )
+
+
+# ============================================================
+# HOTEL FILTER
 # ============================================================
 
 filtered_hotels = [
+
     hotel
-    for hotel in hotels
-    if hotel["chain"] in selected_chains
+    for hotel in HOTELS
+
+    if hotel[3] == selected_city
+
+    and hotel[2] in selected_programs
+
 ]
 
 
 # ============================================================
-# ERGEBNISSE
+# ERGEBNIS
 # ============================================================
 
 st.subheader(
@@ -465,111 +972,219 @@ if not filtered_hotels:
         "Keine Hotels für deine Auswahl gefunden."
     )
 
-else:
 
-    for hotel in filtered_hotels:
+# ============================================================
+# HOTELKARTEN
+# ============================================================
 
-        loyalty = get_loyalty_info(
-            hotel["chain"]
+for hotel in filtered_hotels:
+
+    name = hotel[0]
+    brand = hotel[1]
+    program = hotel[2]
+    city = hotel[3]
+    price = hotel[4]
+
+    status = MY_STATUS.get(
+        program,
+        "Member"
+    )
+
+    benefits = get_benefits(
+        program,
+        status
+    )
+
+    effective_price = get_effective_price(
+        price,
+        program
+    )
+
+    promotion = get_promotion(
+        program
+    )
+
+
+    with st.container(border=True):
+
+        col1, col2, col3 = st.columns(
+            [4, 3, 2]
         )
 
-        with st.container(border=True):
 
-            col1, col2, col3 = st.columns(
-                [3, 2, 1]
-            )
+        # ----------------------------------------------------
+        # HOTEL
+        # ----------------------------------------------------
 
-            with col1:
-
-                st.markdown(
-                    f"### 🏨 {hotel['name']}"
-                )
-
-                st.write(
-                    f"**{hotel['brand']}**"
-                )
-
-                st.caption(
-                    hotel["address"]
-                )
-
-            with col2:
-
-                st.write(
-                    f"**Kette:** {hotel['chain']}"
-                )
-
-                st.success(
-                    f"Dein Status: {loyalty['status']}"
-                )
-
-            with col3:
-
-                st.metric(
-                    "Beispielpreis",
-                    f"{hotel['price']} €"
-                )
+        with col1:
 
             st.markdown(
-                f"**🎁 Deine Vorteile als "
-                f"{loyalty['status']}**"
+                f"### 🏨 {name}"
             )
 
-            if loyalty["benefits"]:
+            st.write(
+                f"**{brand}**"
+            )
 
-                for benefit in loyalty["benefits"]:
+            st.caption(
+                f"{city} · {program}"
+            )
+
+
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
+
+        with col2:
+
+            st.markdown(
+                f"**Dein Status**"
+            )
+
+            st.success(
+                status
+            )
+
+            if promotion > 0:
+
+                st.info(
+                    f"🎁 {promotion} % Promotion"
+                )
+
+
+        # ----------------------------------------------------
+        # PREIS
+        # ----------------------------------------------------
+
+        with col3:
+
+            st.metric(
+                "Testpreis",
+                f"{price:.0f} €"
+            )
+
+            if promotion > 0:
+
+                st.metric(
+                    "Preis nach Promotion",
+                    f"{effective_price:.0f} €",
+                    f"-{promotion} %"
+                )
+
+
+        st.divider()
+
+
+        # ----------------------------------------------------
+        # VORTEILE
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"**🎁 Deine Vorteile als {status}**"
+        )
+
+
+        if benefits:
+
+            benefit_columns = st.columns(
+                2
+            )
+
+            for index, benefit in enumerate(
+                benefits
+            ):
+
+                with benefit_columns[
+                    index % 2
+                ]:
 
                     st.write(
                         f"✓ {benefit}"
                     )
 
-            else:
+        else:
 
-                st.write(
-                    "Keine Vorteile hinterlegt."
-                )
+            st.write(
+                "Keine Vorteile hinterlegt."
+            )
 
 
 # ============================================================
-# DEINE STATUSÜBERSICHT
+# STATUSÜBERSICHT
 # ============================================================
 
 st.divider()
 
-st.subheader("💳 Deine aktuellen Status")
-
-status_data = []
-
-for program, data in LOYALTY_PROGRAMS.items():
-
-    status_data.append({
-        "Programm": program,
-        "Dein Status": data["status"],
-        "Marken": len(data["brands"])
-    })
-
-
-status_df = pd.DataFrame(status_data)
-
-st.dataframe(
-    status_df,
-    use_container_width=True,
-    hide_index=True
+st.subheader(
+    "💳 Deine Loyalty-Welt"
 )
 
 
-# ============================================================
-# MARKENÜBERSICHT
-# ============================================================
+status_columns = st.columns(
+    2
+)
 
-with st.expander("🏷️ Alle hinterlegten Marken"):
 
-    for program, data in LOYALTY_PROGRAMS.items():
+for index, program in enumerate(
+    LOYALTY
+):
+
+    with status_columns[
+        index % 2
+    ]:
+
+        status = MY_STATUS.get(
+            program,
+            "-"
+        )
 
         st.markdown(
-            f"**{program} — {data['status']}**"
+            f"**{program}**"
         )
 
         st.write(
-            ", ".join(data["brands"])
+            f"Status: **{status}**"
         )
+
+        if program in PERSONAL_PROMOTIONS:
+
+            st.write(
+                f"🎁 Persönliche Promotion: "
+                f"**{PERSONAL_PROMOTIONS[program]} %**"
+            )
+
+
+# ============================================================
+# MARKEN
+# ============================================================
+
+with st.expander(
+    "🏷️ Alle hinterlegten Marken"
+):
+
+    for program, data in LOYALTY.items():
+
+        st.markdown(
+            f"**{program}**"
+        )
+
+        st.write(
+            ", ".join(
+                data["brands"]
+            )
+        )
+
+
+# ============================================================
+# TECHNISCHE INFO
+# ============================================================
+
+with st.expander(
+    "⚙️ Datenquelle"
+):
+
+    st.info(
+        "Aktuell verwendet diese Version Testdaten. "
+        "Im nächsten Schritt wird die Test-Hoteldatenbank "
+        "durch eine echte Hotelsuche ersetzt."
+    )
