@@ -10,56 +10,74 @@ function corsHeaders() {
   };
 }
 
-export default {
-  async fetch(request, env) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders() });
-    }
+export async function onRequest(context) {
+  const request = context.request;
+  const env = context.env;
 
-    const url = new URL(request.url);
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders() });
+  }
 
-    const required = ["location", "check_in", "check_out"];
-    for (const key of required) {
-      if (!url.searchParams.get(key)) {
-        return new Response(
-          JSON.stringify({ error: `Missing parameter: ${key}` }),
-          { status: 400, headers: corsHeaders() }
-        );
-      }
-    }
+  const incoming = new URL(request.url);
 
-    if (!env.STAYAPI_KEY) {
-      return new Response(
-        JSON.stringify({ error: "STAYAPI_KEY is not configured on the Worker." }),
-        { status: 500, headers: corsHeaders() }
-      );
-    }
+  const location = incoming.searchParams.get("location")?.trim();
+  const checkIn = incoming.searchParams.get("check_in");
+  const checkOut = incoming.searchParams.get("check_out");
+  const adults = incoming.searchParams.get("adults") || "2";
+  const currency = incoming.searchParams.get("currency") || "EUR";
 
-    const params = new URLSearchParams({
-      location: url.searchParams.get("location"),
-      check_in: url.searchParams.get("check_in"),
-      check_out: url.searchParams.get("check_out"),
-      adults: url.searchParams.get("adults") || "2",
-      currency: url.searchParams.get("currency") || "EUR"
-    });
+  if (!location || !checkIn || !checkOut) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing required parameters: location, check_in, check_out"
+      }),
+      { status: 400, headers: corsHeaders() }
+    );
+  }
 
-    const minRating = url.searchParams.get("min_rating");
-    if (minRating) params.set("min_rating", minRating);
+  const apiKey = env.STAYAPI_KEY;
 
-    const upstream = await fetch(`${STAYAPI_URL}?${params}`, {
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({
+        error: "STAYAPI_KEY is missing in Cloudflare Pages environment variables."
+      }),
+      { status: 500, headers: corsHeaders() }
+    );
+  }
+
+  const upstreamUrl = new URL(STAYAPI_URL);
+  upstreamUrl.searchParams.set("location", location);
+  upstreamUrl.searchParams.set("check_in", checkIn);
+  upstreamUrl.searchParams.set("check_out", checkOut);
+  upstreamUrl.searchParams.set("adults", adults);
+  upstreamUrl.searchParams.set("currency", currency);
+
+  try {
+    const upstream = await fetch(upstreamUrl.toString(), {
+      method: "GET",
       headers: {
-        "X-API-Key": env.STAYAPI_KEY,
+        "X-API-Key": apiKey,
         "Accept": "application/json"
       }
     });
 
     const body = await upstream.text();
 
-    // IMPORTANT: do not slice, rank, or otherwise truncate `hotels`.
-    // StayAPI documents `hotels` as the result array and `total_count` as
-    // the total number found.
     return new Response(body, {
       status: upstream.status,
+      headers: corsHeaders()
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "StayAPI request failed.",
+        details: String(error?.message || error)
+      }),
+      { status: 502, headers: corsHeaders() }
+    );
+  }
+}
       headers: corsHeaders()
     });
   }
