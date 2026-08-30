@@ -77,7 +77,6 @@ const LOYALTY_PROGRAMS = {
   ]
 };
 
-
 const PERSONAL_STATUS = {
   "Hilton Honors": "Gold",
   "Marriott Bonvoy": "Platinum Elite",
@@ -91,14 +90,10 @@ const PERSONAL_STATUS = {
   "Best Western Rewards": "Gold"
 };
 
-
 const PERSONAL_POINTS = Object.fromEntries(
-  Object.keys(LOYALTY_PROGRAMS).map(program => [
-    program,
-    0
-  ])
+  Object.keys(LOYALTY_PROGRAMS)
+    .map(program => [program, 0])
 );
-
 
 let amexOffers = [
   {
@@ -108,62 +103,50 @@ let amexOffers = [
   }
 ];
 
-
 const STATUS_BENEFITS = {
-
   "Hilton Honors": {
-
     "Member": [
       "Member Rate",
       "Free Wi-Fi",
       "Points earning"
     ],
-
     "Silver": [
       "20% bonus points",
       "5th night free on reward stays"
     ],
-
     "Gold": [
       "80% bonus points",
       "Room upgrade subject to availability",
       "Breakfast outside the US / F&B credit in the US",
       "5th night free on reward stays"
     ],
-
     "Diamond": [
       "100% bonus points",
       "Room upgrade subject to availability",
       "Breakfast / F&B credit",
       "Executive Lounge at participating hotels"
     ],
-
     "Diamond Reserve": [
       "All Diamond benefits",
       "Additional Diamond Reserve benefits"
     ]
   },
 
-
   "Marriott Bonvoy": {
-
     "Member": [
       "Member Rate",
       "Free Wi-Fi",
       "Points earning"
     ],
-
     "Silver Elite": [
       "10% bonus points",
       "Late check-out subject to availability"
     ],
-
     "Gold Elite": [
       "25% bonus points",
       "Room upgrade subject to availability",
       "Late check-out subject to availability"
     ],
-
     "Platinum Elite": [
       "50% bonus points",
       "Room upgrade, including selected suites, subject to availability",
@@ -171,7 +154,6 @@ const STATUS_BENEFITS = {
       "Welcome gift",
       "Lounge access at participating brands"
     ],
-
     "Titanium Elite": [
       "75% bonus points",
       "Room upgrade, including selected suites, subject to availability",
@@ -181,27 +163,22 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "IHG One Rewards": {
-
     "Club Member": [
       "Member Rate",
       "Free Wi-Fi",
       "Points earning"
     ],
-
     "Silver Elite": [
       "20% bonus points",
       "Member Rate",
       "Free Wi-Fi"
     ],
-
     "Gold Elite": [
       "40% bonus points",
       "Member Rate",
       "Free Wi-Fi"
     ],
-
     "Platinum Elite": [
       "60% bonus points",
       "Room upgrade subject to availability",
@@ -209,7 +186,6 @@ const STATUS_BENEFITS = {
       "Free Wi-Fi",
       "Late check-out subject to availability"
     ],
-
     "Diamond Elite": [
       "100% bonus points",
       "Room upgrade subject to availability",
@@ -220,22 +196,18 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "ALL - Accor Live Limitless": {
-
     "Classic": [
       "Member Rate",
       "Free Wi-Fi",
       "Reward points"
     ],
-
     "Silver": [
       "Welcome drink",
       "Priority Welcome",
       "Late check-out subject to availability",
       "24% Reward Points bonus"
     ],
-
     "Gold": [
       "Welcome drink",
       "Priority Welcome",
@@ -243,7 +215,6 @@ const STATUS_BENEFITS = {
       "Early check-in or late check-out",
       "48% Reward Points bonus"
     ],
-
     "Platinum": [
       "Welcome drink",
       "Room upgrade subject to availability",
@@ -252,7 +223,6 @@ const STATUS_BENEFITS = {
       "Early check-in and late check-out",
       "76% Reward Points bonus"
     ],
-
     "Diamond": [
       "All Platinum benefits",
       "Free weekend breakfast",
@@ -262,22 +232,18 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "Radisson Rewards": {
-
     "Club": [
       "Member Rate",
       "Member discount",
       "Priority Line"
     ],
-
     "Premium": [
       "Room upgrade subject to availability",
       "Early check-in subject to availability",
       "Late check-out subject to availability",
       "Food & beverage discount"
     ],
-
     "VIP": [
       "Room upgrade subject to availability",
       "Early check-in subject to availability",
@@ -287,26 +253,21 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "MeliáRewards": {
-
     "White": [
       "Member Rate",
       "Points earning"
     ],
-
     "Silver": [
       "Room upgrade subject to availability",
       "Late check-out subject to availability"
     ],
-
     "Gold": [
       "Room upgrade subject to availability",
       "Early check-in subject to availability",
       "Late check-out subject to availability",
       "20% personal promotion"
     ],
-
     "Platinum": [
       "Room upgrade subject to availability",
       "Early check-in subject to availability",
@@ -316,30 +277,25 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "GHA DISCOVERY": {
-
     "Silver": [
       "4% D$ on eligible spend",
       "Member Rate",
       "Local Offers",
       "Experiences"
     ],
-
     "Gold": [
       "5% D$ on eligible spend",
       "Member Rate",
       "Local Offers",
       "Experiences"
     ],
-
     "Platinum": [
       "6% D$ on eligible spend",
       "3pm late check-out subject to availability",
       "Room upgrade subject to availability",
       "Welcome amenity"
     ],
-
     "Titanium": [
       "7% D$ on eligible spend",
       "Early check-in from 11am subject to availability",
@@ -349,28 +305,23 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "Wyndham Rewards": {
-
     "Blue": [
       "Member Rate",
       "Points earning"
     ],
-
     "Gold": [
       "Early check-in subject to availability",
       "Late check-out subject to availability",
       "Preferred room subject to availability",
       "10% points bonus"
     ],
-
     "Platinum": [
       "Early check-in subject to availability",
       "Late check-out subject to availability",
       "Preferred room subject to availability",
       "15% points bonus"
     ],
-
     "Diamond": [
       "Early check-in subject to availability",
       "Late check-out subject to availability",
@@ -380,35 +331,29 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "WorldHotels Rewards": {
-
     "Red": [
       "Member Rate",
       "Points earning"
     ],
-
     "Gold": [
       "Points bonus",
       "Early check-in / late check-out subject to availability",
       "Upgrade subject to availability",
       "Welcome amenity"
     ],
-
     "Platinum": [
       "Points bonus",
       "Early check-in / late check-out subject to availability",
       "Upgrade subject to availability",
       "Welcome amenity"
     ],
-
     "Diamond": [
       "Points bonus",
       "Upgrade subject to availability",
       "Welcome amenity",
       "Lounge access at participating hotels"
     ],
-
     "Diamond Select": [
       "Points bonus",
       "Upgrade subject to availability",
@@ -418,34 +363,28 @@ const STATUS_BENEFITS = {
     ]
   },
 
-
   "Best Western Rewards": {
-
     "Blue": [
       "Member Rate",
       "Points earning"
     ],
-
     "Gold": [
       "10% bonus points",
       "Welcome amenity",
       "Member Rate"
     ],
-
     "Platinum": [
       "15% bonus points",
       "Welcome amenity",
       "Early check-in / late check-out subject to availability",
       "Member Rate"
     ],
-
     "Diamond": [
       "30% bonus points",
       "Welcome amenity",
       "Early check-in / late check-out subject to availability",
       "Member Rate"
     ],
-
     "Diamond Select": [
       "50% bonus points",
       "Welcome amenity",
@@ -453,12 +392,9 @@ const STATUS_BENEFITS = {
       "Member Rate"
     ]
   }
-
 };
 
-
 const PROGRAM_ALIASES = [
-
   ["waldorf astoria", "Hilton", "Waldorf Astoria", "Hilton Honors"],
   ["conrad", "Hilton", "Conrad", "Hilton Honors"],
   ["doubletree", "Hilton", "DoubleTree", "Hilton Honors"],
@@ -471,7 +407,6 @@ const PROGRAM_ALIASES = [
   ["homewood suites", "Hilton", "Homewood Suites", "Hilton Honors"],
   ["home2 suites", "Hilton", "Home2 Suites", "Hilton Honors"],
   ["hilton", "Hilton", "Hilton", "Hilton Honors"],
-
 
   ["ritz-carlton", "Marriott", "The Ritz-Carlton", "Marriott Bonvoy"],
   ["st. regis", "Marriott", "St. Regis", "Marriott Bonvoy"],
@@ -492,7 +427,6 @@ const PROGRAM_ALIASES = [
   ["ac hotel", "Marriott", "AC Hotels", "Marriott Bonvoy"],
   ["marriott", "Marriott", "Marriott Hotels", "Marriott Bonvoy"],
 
-
   ["intercontinental", "IHG", "InterContinental", "IHG One Rewards"],
   ["six senses", "IHG", "Six Senses", "IHG One Rewards"],
   ["regent", "IHG", "Regent", "IHG One Rewards"],
@@ -503,7 +437,6 @@ const PROGRAM_ALIASES = [
   ["holiday inn express", "IHG", "Holiday Inn Express", "IHG One Rewards"],
   ["holiday inn", "IHG", "Holiday Inn", "IHG One Rewards"],
   ["voco", "IHG", "voco", "IHG One Rewards"],
-
 
   ["raffles", "Accor", "Raffles", "ALL - Accor Live Limitless"],
   ["fairmont", "Accor", "Fairmont", "ALL - Accor Live Limitless"],
@@ -523,14 +456,12 @@ const PROGRAM_ALIASES = [
   ["the hoxton", "Accor", "The Hoxton", "ALL - Accor Live Limitless"],
   ["ibis", "Accor", "ibis", "ALL - Accor Live Limitless"],
 
-
   ["radisson collection", "Radisson", "Radisson Collection", "Radisson Rewards"],
   ["radisson blu", "Radisson", "Radisson Blu", "Radisson Rewards"],
   ["radisson red", "Radisson", "Radisson RED", "Radisson Rewards"],
   ["park plaza", "Radisson", "Park Plaza", "Radisson Rewards"],
   ["park inn", "Radisson", "Park Inn by Radisson", "Radisson Rewards"],
   ["radisson", "Radisson", "Radisson", "Radisson Rewards"],
-
 
   ["gran meliá", "Meliá", "Gran Meliá", "MeliáRewards"],
   ["gran melia", "Meliá", "Gran Meliá", "MeliáRewards"],
@@ -542,7 +473,6 @@ const PROGRAM_ALIASES = [
   ["meliá", "Meliá", "Meliá", "MeliáRewards"],
   ["melia", "Meliá", "Meliá", "MeliáRewards"],
 
-
   ["kempinski", "GHA", "Kempinski", "GHA DISCOVERY"],
   ["nh collection", "GHA", "NH Collection", "GHA DISCOVERY"],
   ["nh hotels", "GHA", "NH Hotels", "GHA DISCOVERY"],
@@ -552,7 +482,6 @@ const PROGRAM_ALIASES = [
   ["avani", "GHA", "Avani", "GHA DISCOVERY"],
   ["viceroy", "GHA", "Viceroy", "GHA DISCOVERY"],
 
-
   ["wyndham grand", "Wyndham", "Wyndham Grand", "Wyndham Rewards"],
   ["wyndham", "Wyndham", "Wyndham", "Wyndham Rewards"],
   ["ramada encore", "Wyndham", "Ramada Encore", "Wyndham Rewards"],
@@ -561,77 +490,22 @@ const PROGRAM_ALIASES = [
   ["super 8", "Wyndham", "Super 8", "Wyndham Rewards"],
   ["la quinta", "Wyndham", "La Quinta", "Wyndham Rewards"],
 
-
   ["worldhotels", "WorldHotels", "WorldHotels", "WorldHotels Rewards"],
-
-
   ["best western premier", "Best Western", "Best Western Premier", "Best Western Rewards"],
   ["best western plus", "Best Western", "Best Western Plus", "Best Western Rewards"],
   ["best western", "Best Western", "Best Western", "Best Western Rewards"]
-
 ];
 
-
 const AMENITY_ICON = {
-
-  "Pool": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M4 14c2.5-2.5 5.5-2.5 8 0s5.5 2.5 8 0"/>
-      <path d="M4 18c2.5-2.5 5.5-2.5 8 0s5.5 2.5 8 0"/>
-    </svg>
-  `,
-
-  "Sauna": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M7 19c0-2 2-3 2-5 0-1.5-1-2-1-3"/>
-      <path d="M12 19c0-2 2-3 2-5 0-1.5-1-2-1-3"/>
-      <path d="M17 19c0-2 2-3 2-5 0-1.5-1-2-1-3"/>
-      <path d="M4 21h16"/>
-    </svg>
-  `,
-
-  "Spa": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M12 21c4-3 6-6.5 6-10A6 6 0 0 0 6 11c0 3.5 2 7 6 10Z"/>
-      <path d="M12 4V2"/>
-    </svg>
-  `,
-
-  "Fitness": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>
-    </svg>
-  `,
-
-  "Breakfast": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M5 18h14"/>
-      <path d="M7 18c0-4 2-6 5-6s5 2 5 6"/>
-      <path d="M12 12V5"/>
-    </svg>
-  `,
-
-  "Parking": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M7 20V4h5a4 4 0 0 1 0 8H7"/>
-      <path d="M4 20h16"/>
-    </svg>
-  `,
-
-  "Restaurant": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3v18M17 3c3 2 3 7 0 9"/>
-    </svg>
-  `,
-
-  "Bar": `
-    <svg class="amenity-icon" viewBox="0 0 24 24">
-      <path d="M5 4h14l-5 7v7h3v2H7v-2h3v-7L5 4Z"/>
-      <path d="M8 8h8"/>
-    </svg>
-  `
+  Pool: "🏊",
+  Sauna: "♨️",
+  Spa: "🧖",
+  Fitness: "🏋️",
+  Breakfast: "☕",
+  Parking: "🅿️",
+  Restaurant: "🍽️",
+  Bar: "🍸"
 };
-
 
 const state = {
   chain: "all",
@@ -640,22 +514,29 @@ const state = {
   sort: "effective"
 };
 
-
 let liveHotels = [];
 let searchPerformed = false;
-let liveTotalCount = null;
 
+let lastSearchMeta = {
+  totalCount: 0,
+  pagesFetched: 0
+};
 
 const $ = id =>
   document.getElementById(id);
 
+/* ---------------------------------------------------------
+   HELPERS
+--------------------------------------------------------- */
 
 function setDefaultDates() {
-
   const today = new Date();
 
-  const checkIn = new Date(today);
-  const checkOut = new Date(today);
+  const checkIn =
+    new Date(today);
+
+  const checkOut =
+    new Date(today);
 
   checkIn.setDate(
     today.getDate() + 7
@@ -665,21 +546,31 @@ function setDefaultDates() {
     today.getDate() + 9
   );
 
-  $("checkIn").value =
-    checkIn.toISOString().slice(0, 10);
+  if ($("checkIn")) {
+    $("checkIn").value =
+      checkIn
+        .toISOString()
+        .slice(0, 10);
+  }
 
-  $("checkOut").value =
-    checkOut.toISOString().slice(0, 10);
+  if ($("checkOut")) {
+    $("checkOut").value =
+      checkOut
+        .toISOString()
+        .slice(0, 10);
+  }
 }
 
-
 function nights() {
-
   const a =
-    new Date($("checkIn").value);
+    new Date(
+      $("checkIn").value
+    );
 
   const b =
-    new Date($("checkOut").value);
+    new Date(
+      $("checkOut").value
+    );
 
   return Math.max(
     Math.round(
@@ -689,9 +580,7 @@ function nights() {
   );
 }
 
-
 function formatDate(value) {
-
   return new Intl.DateTimeFormat(
     "en-GB",
     {
@@ -699,12 +588,12 @@ function formatDate(value) {
       month: "2-digit",
       year: "numeric"
     }
-  ).format(new Date(value));
+  ).format(
+    new Date(value)
+  );
 }
 
-
 function number(value) {
-
   if (
     value === null ||
     value === undefined ||
@@ -724,7 +613,8 @@ function number(value) {
   const parsed =
     Number(
       String(value)
-        .replace(/[^0-9.-]/g, "")
+        .replace(/[^\d.,-]/g, "")
+        .replace(/,/g, "")
     );
 
   return Number.isFinite(parsed)
@@ -732,15 +622,15 @@ function number(value) {
     : null;
 }
 
-
 function first(obj, keys) {
-
-  for (const key of keys) {
-
+  for (
+    const key of keys
+  ) {
     if (
       obj &&
       obj[key] !== null &&
-      obj[key] !== undefined
+      obj[key] !== undefined &&
+      obj[key] !== ""
     ) {
       return obj[key];
     }
@@ -749,39 +639,36 @@ function first(obj, keys) {
   return null;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 function extractHotels(payload) {
-
-  const candidates = [
-
+  const possible = [
     payload?.hotels,
-
-    payload?.properties,
-
     payload?.data?.hotels,
-
-    payload?.data?.properties,
-
     payload?.results,
-
     payload?.data?.results,
-
-    Array.isArray(payload?.data)
-      ? payload.data
-      : null
-
+    payload?.data
   ];
 
   return (
-    candidates.find(
+    possible.find(
       Array.isArray
     ) || []
   );
 }
 
+/* ---------------------------------------------------------
+   AMENITIES
+--------------------------------------------------------- */
 
 function normalizeAmenities(hotel) {
-
   const raw =
     first(
       hotel,
@@ -792,11 +679,11 @@ function normalizeAmenities(hotel) {
       ]
     ) || [];
 
-  if (Array.isArray(raw)) {
-
+  if (
+    Array.isArray(raw)
+  ) {
     return raw
       .map(item => {
-
         if (
           typeof item === "string"
         ) {
@@ -820,7 +707,6 @@ function normalizeAmenities(hotel) {
   if (
     typeof raw === "string"
   ) {
-
     return raw
       .split(",")
       .map(x => x.trim())
@@ -830,124 +716,90 @@ function normalizeAmenities(hotel) {
   return [];
 }
 
+/* ---------------------------------------------------------
+   IMAGES + PRICES
+--------------------------------------------------------- */
 
 function normalizeHotel(hotel) {
-
   const price =
     hotel?.price || {};
 
-  const location =
-    hotel?.location || {};
+  const rate =
+    price?.rate_per_night ||
+    {};
 
-  const rating =
-    hotel?.rating || {};
+  const totalRate =
+    price?.total_rate ||
+    {};
 
-
-  let total =
-    number(
-      price.total_price ??
-      price.total ??
-      price.current ??
-      hotel?.total_price ??
-      hotel?.total ??
-      null
-    );
-
+  /*
+  Backend already normalizes these,
+  but the frontend also accepts raw
+  SerpApi structures for safety.
+  */
 
   let nightly =
     number(
-      price.price_per_night ??
-      price.nightly ??
-      hotel?.rate_per_night ??
-      hotel?.price_per_night ??
-      hotel?.nightly_price ??
+      price?.price_per_night ??
+      price?.current ??
+      rate?.extracted_lowest ??
+      rate?.extracted_price ??
       null
     );
 
+  let total =
+    number(
+      price?.total_price ??
+      price?.total ??
+      totalRate?.extracted_lowest ??
+      totalRate?.extracted_total ??
+      null
+    );
+
+  const n =
+    nights();
 
   if (
-    hotel?.rate_per_night &&
-    typeof hotel.rate_per_night === "object"
+    total == null &&
+    nightly != null
   ) {
+    total =
+      nightly * n;
+  }
 
+  if (
+    nightly == null &&
+    total != null
+  ) {
     nightly =
-      number(
-        hotel.rate_per_night.extracted_price ??
-        hotel.rate_per_night.price ??
-        hotel.rate_per_night.value ??
-        nightly
-      );
-
-    if (total == null) {
-
-      total =
-        number(
-          hotel.rate_per_night.extracted_total ??
-          hotel.rate_per_night.total ??
-          null
-        );
-    }
+      total / n;
   }
-
-
-  if (
-    hotel?.price &&
-    typeof hotel.price === "object"
-  ) {
-
-    if (total == null) {
-
-      total =
-        number(
-          hotel.price.extracted_total ??
-          hotel.price.total ??
-          hotel.price.value ??
-          null
-        );
-    }
-
-    if (nightly == null) {
-
-      nightly =
-        number(
-          hotel.price.extracted_price ??
-          hotel.price.price ??
-          hotel.price.value ??
-          null
-        );
-    }
-  }
-
 
   const images =
-    Array.isArray(hotel?.images)
+    Array.isArray(
+      hotel?.images
+    )
       ? hotel.images
       : [];
 
-
   let image = null;
 
-
-  for (const item of images) {
-
-    if (
-      typeof item === "string" &&
-      item
-    ) {
-
-      image = item;
-      break;
-    }
-
+  if (
+    images.length
+  ) {
+    const firstImage =
+      images[0];
 
     if (
-      item &&
-      typeof item === "object"
+      typeof firstImage ===
+      "string"
     ) {
-
+      image =
+        firstImage;
+    } else {
       image =
         first(
-          item,
+          firstImage,
           [
             "original_image",
             "image",
@@ -956,31 +808,48 @@ function normalizeHotel(hotel) {
             "thumbnail"
           ]
         );
-
-      if (image) {
-        break;
-      }
     }
   }
 
-
   if (!image) {
-
     image =
       first(
         hotel,
         [
-          "image",
-          "image_url",
+          "thumbnail",
           "original_image",
-          "thumbnail"
+          "image",
+          "image_url"
         ]
       );
   }
 
+  const rating =
+    number(
+      hotel?.rating?.value ??
+      hotel?.overall_rating ??
+      hotel?.rating_value ??
+      hotel?.score ??
+      null
+    );
+
+  const reviewCount =
+    number(
+      hotel?.rating?.votes ??
+      hotel?.reviews ??
+      hotel?.review_count ??
+      null
+    );
+
+  const stars =
+    number(
+      hotel?.stars ??
+      hotel?.extracted_hotel_class ??
+      hotel?.hotel_class ??
+      null
+    );
 
   return {
-
     raw: hotel,
 
     id:
@@ -993,21 +862,8 @@ function normalizeHotel(hotel) {
     name:
       String(
         hotel?.name ??
-        hotel?.hotel_name ??
         "Unnamed hotel"
       ),
-
-    brand:
-      hotel?.brand ??
-      hotel?.brand_name ??
-      hotel?.chain ??
-      null,
-
-    chain:
-      hotel?.chain ??
-      hotel?.brand ??
-      hotel?.brand_name ??
-      null,
 
     total,
 
@@ -1017,50 +873,29 @@ function normalizeHotel(hotel) {
 
     images,
 
-    rating:
-      number(
-        rating?.value ??
-        hotel?.overall_rating ??
-        hotel?.rating ??
-        hotel?.rating_value ??
-        hotel?.score ??
-        null
-      ),
+    rating,
 
-    reviewCount:
-      number(
-        rating?.votes ??
-        hotel?.reviews ??
-        hotel?.review_count ??
-        null
-      ),
+    reviewCount,
 
-    stars:
-      number(
-        hotel?.stars ??
-        hotel?.hotel_class ??
-        hotel?.star_rating ??
-        null
-      ),
+    stars,
 
     amenities:
-      normalizeAmenities(hotel),
+      normalizeAmenities(
+        hotel
+      ),
 
     address:
-      location?.address ??
+      hotel?.location?.address ??
       hotel?.address ??
       null,
 
     latitude:
-      location?.latitude ??
-      location?.lat ??
+      hotel?.location?.latitude ??
       hotel?.latitude ??
       null,
 
     longitude:
-      location?.longitude ??
-      location?.lng ??
-      location?.lon ??
+      hotel?.location?.longitude ??
       hotel?.longitude ??
       null,
 
@@ -1068,19 +903,19 @@ function normalizeHotel(hotel) {
       hotel?.booking_url ??
       hotel?.hotel_url ??
       hotel?.url ??
-      hotel?.link ??
       null,
 
-    isPaid:
-      Boolean(
-        hotel?.is_paid
-      )
+    property_token:
+      hotel?.property_token ??
+      null
   };
 }
 
+/* ---------------------------------------------------------
+   LOYALTY CLASSIFICATION
+--------------------------------------------------------- */
 
 function normalizeBrandText(value) {
-
   return String(value || "")
     .normalize("NFD")
     .replace(
@@ -1088,10 +923,7 @@ function normalizeBrandText(value) {
       ""
     )
     .toLowerCase()
-    .replace(
-      /[’']/g,
-      ""
-    )
+    .replace(/[’']/g, "")
     .replace(
       /[^a-z0-9]+/g,
       " "
@@ -1099,275 +931,152 @@ function normalizeBrandText(value) {
     .trim();
 }
 
+function classifyHotel(name) {
+  const text =
+    normalizeBrandText(
+      name
+    );
 
-function classifyHotel(hotelOrName) {
-
-  const hotel =
-    typeof hotelOrName === "object" &&
-    hotelOrName !== null
-      ? hotelOrName
-      : {
-          name: hotelOrName
-        };
-
-
-  const searchable = [
-
-    hotel.name,
-
-    hotel.hotel_name,
-
-    hotel.title,
-
-    hotel.brand,
-
-    hotel.brand_name,
-
-    hotel.chain,
-
-    hotel.chain_name,
-
-    hotel.hotel_brand,
-
-    hotel.property_brand,
-
-    hotel.operator,
-
-    hotel.description
-
-  ]
-    .filter(Boolean)
-    .map(normalizeBrandText)
-    .join(" ");
-
-
-  const rules =
-    PROGRAM_ALIASES
-      .map(
-        ([
-          needle,
-          chain,
-          brand,
-          program
-        ]) => ({
-          needle,
-          chain,
-          brand,
-          program
-        })
-      )
-      .sort(
-        (a, b) =>
-          normalizeBrandText(
-            b.needle
-          ).length -
-          normalizeBrandText(
-            a.needle
-          ).length
-      );
-
-
-  for (const rule of rules) {
-
-    const needle =
+  for (
+    const [
+      needle,
+      chain,
+      brand,
+      program
+    ]
+    of PROGRAM_ALIASES
+  ) {
+    const normalizedNeedle =
       normalizeBrandText(
-        rule.needle
+        needle
       );
 
     if (
-      needle &&
-      searchable.includes(
-        needle
+      normalizedNeedle &&
+      text.includes(
+        normalizedNeedle
       )
     ) {
-
       return {
-
-        chain:
-          rule.chain,
-
-        brand:
-          rule.brand,
-
-        program:
-          rule.program
+        chain,
+        brand,
+        program
       };
     }
   }
 
-
   return {
-
     chain: "Other",
-
     brand: "Other",
-
     program: null
   };
 }
 
-
-function dedupeHotels(hotels) {
-
-  const seen =
-    new Map();
-
-
-  for (
-    const hotel of hotels
-  ) {
-
-    const key =
-      normalizeBrandText(
-        hotel.id ||
-        hotel.name ||
-        `${hotel.address || ""}|${hotel.latitude || ""}|${hotel.longitude || ""}`
-      );
-
-
-    if (!key) {
-      continue;
-    }
-
-
-    const previous =
-      seen.get(key);
-
-
-    if (
-      !previous ||
-      (
-        hotel.total != null &&
-        previous.total == null
-      )
-    ) {
-
-      seen.set(
-        key,
-        hotel
-      );
-    }
-  }
-
-
-  return [
-    ...seen.values()
-  ];
-}
-
-
 function benefitsFor(program) {
-
   const status =
-    PERSONAL_STATUS[program];
+    PERSONAL_STATUS[
+      program
+    ];
 
   return (
-    STATUS_BENEFITS[program]?.[status] ||
-    []
+    STATUS_BENEFITS[
+      program
+    ]?.[status] || []
   );
 }
 
+/* ---------------------------------------------------------
+   AMEX
+--------------------------------------------------------- */
 
 function amexFor(
   hotel,
   program,
   brand
 ) {
-
   const haystack =
     `${hotel.name} ${program || ""} ${brand || ""}`
       .toLowerCase();
 
-
-  return amexOffers
-    .filter(
-      offer =>
-        offer.name &&
-        haystack.includes(
-          String(
-            offer.name
-          ).toLowerCase()
-        )
-    )
-    .sort(
-      (a, b) =>
-        Number(b.credit || 0) -
-        Number(a.credit || 0)
-    )[0] || null;
+  return (
+    amexOffers
+      .filter(
+        offer =>
+          offer.name &&
+          haystack.includes(
+            String(
+              offer.name
+            ).toLowerCase()
+          )
+      )
+      .sort(
+        (a, b) =>
+          Number(b.credit || 0) -
+          Number(a.credit || 0)
+      )[0] ||
+    null
+  );
 }
 
+/* ---------------------------------------------------------
+   ENRICH
+--------------------------------------------------------- */
 
 function enrich(hotel) {
-
   const cls =
     classifyHotel(
-      hotel.raw || hotel
+      hotel.name
     );
-
 
   const n =
     nights();
 
+  const nightly =
+    hotel.nightly != null
+      ? hotel.nightly
+      : hotel.total != null
+        ? hotel.total / n
+        : null;
 
-  let total =
-    hotel.total;
+  const total =
+    hotel.total != null
+      ? hotel.total
+      : nightly != null
+        ? nightly * n
+        : null;
 
-  let nightly =
-    hotel.nightly;
+  const safeNightly =
+    nightly ?? 0;
 
-
-  if (
-    total == null &&
-    nightly != null
-  ) {
-
-    total =
-      nightly * n;
-  }
-
-
-  if (
-    nightly == null &&
-    total != null
-  ) {
-
-    nightly =
-      total / n;
-  }
-
+  const safeTotal =
+    total ?? 0;
 
   const program =
     cls.program;
 
-
   const status =
     program
       ? (
-          PERSONAL_STATUS[program] ||
-          "Member"
+          PERSONAL_STATUS[
+            program
+          ] || "Member"
         )
       : "—";
-
 
   const benefits =
     benefitsFor(
       program
     );
 
-
   const promotion =
-    program === "MeliáRewards"
+    program ===
+    "MeliáRewards"
       ? 0.20
       : 0;
 
-
   const discounted =
-    (
-      total ?? 0
-    ) * (
-      1 - promotion
-    );
-
+    safeTotal *
+    (1 - promotion);
 
   const amex =
     amexFor(
@@ -1376,14 +1085,14 @@ function enrich(hotel) {
       cls.brand
     );
 
-
   const amexTriggered =
-    !!amex &&
-    discounted >=
-      Number(
-        amex.spend || 0
-      );
-
+    Boolean(
+      amex &&
+      discounted >=
+        Number(
+          amex.spend || 0
+        )
+    );
 
   const amexCredit =
     amexTriggered
@@ -1392,28 +1101,26 @@ function enrich(hotel) {
         )
       : 0;
 
-
   const effective =
     Math.max(
       discounted -
-      amexCredit,
+        amexCredit,
       0
     );
 
-
   return {
-
     ...hotel,
-
     ...cls,
 
     status,
 
     benefits,
 
-    total,
+    total:
+      safeTotal,
 
-    nightly,
+    nightly:
+      safeNightly,
 
     promotion,
 
@@ -1430,41 +1137,36 @@ function enrich(hotel) {
   };
 }
 
+/* ---------------------------------------------------------
+   SEARCH
+--------------------------------------------------------- */
 
 async function searchLive() {
-
   const city =
     $("city")
-      .value
+      ?.value
       .trim();
-
 
   const checkIn =
     $("checkIn")
-      .value;
-
+      ?.value;
 
   const checkOut =
     $("checkOut")
-      .value;
-
+      ?.value;
 
   const guests =
     Number(
       $("guests")
-        .value || 2
+        ?.value || 2
     );
 
-
   if (!city) {
-
     alert(
       "Please enter a city."
     );
-
     return;
   }
-
 
   if (
     !checkIn ||
@@ -1472,211 +1174,210 @@ async function searchLive() {
     new Date(checkOut) <=
       new Date(checkIn)
   ) {
-
     alert(
       "Please choose valid check-in and check-out dates."
     );
-
     return;
   }
 
-
   const params =
     new URLSearchParams({
+      location: city,
+      check_in: checkIn,
+      check_out: checkOut,
+      adults: String(
+        guests
+      ),
+      currency: "EUR",
 
-      location:
-        city,
+      /*
+      3 pages = up to roughly
+      60 Google Hotels results.
+      */
 
-      check_in:
-        checkIn,
-
-      check_out:
-        checkOut,
-
-      adults:
-        String(guests),
-
-      currency:
-        "EUR",
-
-      pages:
-        "5"
+      pages: "3"
     });
-
 
   const button =
     $("searchButton");
 
-
-  button.disabled =
-    true;
-
-  button.textContent =
-    "Searching...";
-
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "Searching...";
+  }
 
   try {
-
     const response =
       await fetch(
         `${API_URL}?${params.toString()}`,
         {
-          method: "GET"
+          method: "GET",
+          headers: {
+            Accept:
+              "application/json"
+          }
         }
       );
 
+    const contentType =
+      response.headers.get(
+        "content-type"
+      ) || "";
+
+    if (
+      !contentType.includes(
+        "application/json"
+      )
+    ) {
+      throw new Error(
+        `API returned ${response.status}. Expected JSON.`
+      );
+    }
 
     const payload =
       await response.json();
 
-
     if (
       !response.ok ||
-      payload.error
+      payload?.error
     ) {
-
       throw new Error(
-        payload.error ||
+        payload?.details ||
+        payload?.error ||
         `Request failed (${response.status})`
       );
     }
 
-
-    const extracted =
+    const rawHotels =
       extractHotels(
         payload
       );
 
-
     liveHotels =
-      dedupeHotels(
-        extracted.map(
-          normalizeHotel
+      rawHotels.map(
+        normalizeHotel
+      );
+
+    lastSearchMeta = {
+      totalCount:
+        Number(
+          payload?.total_count ??
+          liveHotels.length
+        ),
+
+      pagesFetched:
+        Number(
+          payload?.pages_fetched ||
+          1
         )
-      );
-
-
-    liveTotalCount =
-      number(
-        payload?.total_count ??
-        payload?.data?.total_count ??
-        liveHotels.length
-      );
-
+    };
 
     searchPerformed =
       true;
 
-
     render();
 
   } catch (error) {
-
     console.error(
+      "Hotel search error:",
       error
     );
-
 
     alert(
       `Hotel search failed: ${error.message}`
     );
 
   } finally {
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "Search";
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "Search";
+    }
   }
 }
 
-
-function escapeHtml(value) {
-
-  return String(
-    value ?? ""
-  )
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-}
-
+/* ---------------------------------------------------------
+   AMENITY UI
+--------------------------------------------------------- */
 
 function amenityChip(name) {
-
-  const known =
+  const key =
     Object.keys(
       AMENITY_ICON
     ).find(
-      key =>
-        name
+      item =>
+        String(name)
           .toLowerCase()
           .includes(
-            key.toLowerCase()
+            item.toLowerCase()
           )
     );
 
-
   const icon =
-    known
-      ? AMENITY_ICON[known]
-      : "";
-
+    key
+      ? AMENITY_ICON[key]
+      : "•";
 
   return `
-
     <span class="amenity-chip">
-
-      ${icon}
-
+      <span class="amenity-icon-text">
+        ${icon}
+      </span>
       <span>
         ${escapeHtml(name)}
       </span>
-
     </span>
-
   `;
 }
 
+/* ---------------------------------------------------------
+   FILTERS
+--------------------------------------------------------- */
+
+function selectedProgramFilters() {
+  return new Set(
+    [
+      ...document.querySelectorAll(
+        'input.program-filter:checked, input[data-filter="program"]:checked'
+      )
+    ].map(
+      input =>
+        input.value
+    )
+  );
+}
+
+function selectedAmenityFilters() {
+  return new Set(
+    [
+      ...document.querySelectorAll(
+        'input.amenity-filter:checked, input[data-filter="amenity"]:checked'
+      )
+    ].map(
+      input =>
+        input.value
+    )
+  );
+}
+
+/* ---------------------------------------------------------
+   RENDER
+--------------------------------------------------------- */
 
 function render() {
-
   const n =
     nights();
-
 
   let hotels =
     liveHotels.map(
       enrich
     );
 
-
-  /*
-   * Main chain buttons
-   */
-
   if (
-    state.chain !== "all"
+    state.chain !==
+    "all"
   ) {
-
     hotels =
       hotels.filter(
         hotel =>
@@ -1685,52 +1386,49 @@ function render() {
       );
   }
 
+  const activePrograms =
+    selectedProgramFilters();
 
-  /*
-   * Loyalty program filters
-   */
+  const activeAmenities =
+    selectedAmenityFilters();
 
   if (
-    state.activePrograms.size
+    activePrograms.size
   ) {
-
     hotels =
       hotels.filter(
         hotel =>
-          state.activePrograms.has(
-            hotel.program
+          activePrograms.has(
+            hotel.chain
           )
       );
   }
 
-
-  /*
-   * Amenity filters
-   */
-
   if (
-    state.amenities.size
+    activeAmenities.size
   ) {
-
     hotels =
       hotels.filter(
         hotel => {
-
           const all =
-            hotel.amenities.map(
-              amenity =>
-                amenity.toLowerCase()
-            );
-
+            hotel.amenities
+              .map(
+                amenity =>
+                  String(
+                    amenity
+                  ).toLowerCase()
+              );
 
           return [
-            ...state.amenities
+            ...activeAmenities
           ].every(
             required =>
               all.some(
-                amenity =>
-                  amenity.includes(
-                    required.toLowerCase()
+                value =>
+                  value.includes(
+                    String(
+                      required
+                    ).toLowerCase()
                   )
               )
           );
@@ -1738,15 +1436,10 @@ function render() {
       );
   }
 
-
-  /*
-   * Benefits filter
-   */
-
   if (
-    $("onlyBenefits")?.checked
+    $("onlyBenefits")
+      ?.checked
   ) {
-
     hotels =
       hotels.filter(
         hotel =>
@@ -1755,15 +1448,10 @@ function render() {
       );
   }
 
-
-  /*
-   * Offer filter
-   */
-
   if (
-    $("onlyOffers")?.checked
+    $("onlyOffers")
+      ?.checked
   ) {
-
     hotels =
       hotels.filter(
         hotel =>
@@ -1772,93 +1460,1343 @@ function render() {
       );
   }
 
-
-  /*
-   * Sorting
-   */
+  /* SORT */
 
   if (
     state.sort ===
     "effective"
   ) {
-
     hotels.sort(
       (a, b) =>
         a.effective -
         b.effective
     );
+  }
 
-  } else if (
+  if (
     state.sort ===
     "rating"
   ) {
-
     hotels.sort(
       (a, b) =>
         (b.rating || 0) -
         (a.rating || 0)
     );
+  }
 
-  } else if (
+  if (
     state.sort ===
     "benefits"
   ) {
-
     hotels.sort(
       (a, b) =>
         b.benefits.length -
         a.benefits.length
     );
+  }
 
-  } else if (
+  if (
     state.sort ===
     "value"
   ) {
-
     hotels.sort(
       (a, b) => {
-
         const valueA =
           (a.rating || 0) +
-          a.benefits.length * 0.15 +
-          (a.promotion ? 0.2 : 0);
+          a.benefits.length *
+            0.15 +
+          (a.promotion
+            ? 0.2
+            : 0);
 
         const valueB =
           (b.rating || 0) +
-          b.benefits.length * 0.15 +
-          (b.promotion ? 0.2 : 0);
+          b.benefits.length *
+            0.15 +
+          (b.promotion
+            ? 0.2
+            : 0);
 
-        return valueB - valueA;
+        return (
+          valueB -
+          valueA
+        );
       }
     );
   }
 
-
-  $("resultTitle").textContent =
-    `Hotels in ${
-      $("city").value.trim() ||
-      "your city"
-    }`;
-
+  if (
+    $("resultTitle")
+  ) {
+    $("resultTitle")
+      .textContent =
+      `Hotels in ${
+        $("city")
+          ?.value
+          ?.trim() ||
+        "your city"
+      }`;
+  }
 
   if (!searchPerformed) {
+    if ($("resultMeta")) {
+      $("resultMeta")
+        .textContent =
+        "Choose your dates and search for live hotels.";
+    }
 
-    $("resultMeta").textContent =
-      "Choose your dates and search for live hotels.";
+    if ($("results")) {
+      $("results")
+        .innerHTML = "";
+    }
 
-    $("results").innerHTML =
-      "";
-
-    $("emptyState").style.display =
-      "block";
+    if ($("emptyState")) {
+      $("emptyState")
+        .style.display =
+        "block";
+    }
 
     return;
   }
 
+  const apiFound =
+    Number(
+      lastSearchMeta.totalCount ||
+      hotels.length
+    );
 
-  $("resultMeta").textContent =
-    `${hotels.length} shown · ${
-      liveTotalCount ??
-      liveHotels.length
-    } found · ${
-      format
+  if ($("resultMeta")) {
+    $("resultMeta")
+      .textContent =
+      `${hotels.length} shown` +
+      (
+        apiFound >
+        hotels.length
+          ? ` · ${apiFound} found`
+          : ""
+      ) +
+      ` · ${formatDate(
+        $("checkIn").value
+      )}` +
+      ` – ${formatDate(
+        $("checkOut").value
+      )}` +
+      ` · ${n} nights` +
+      ` · ${
+        $("guests").value
+      } guests` +
+      ` · Live Google Hotels`;
+  }
+
+  if (!hotels.length) {
+    if ($("results")) {
+      $("results")
+        .innerHTML = "";
+    }
+
+    if ($("emptyState")) {
+      $("emptyState")
+        .style.display =
+        "block";
+
+      const text =
+        $("emptyState")
+          .querySelector(
+            "p:last-child"
+          );
+
+      if (text) {
+        text.textContent =
+          "No hotels match your current filters.";
+      }
+    }
+
+    updateFilterCount();
+    return;
+  }
+
+  if ($("emptyState")) {
+    $("emptyState")
+      .style.display =
+      "none";
+  }
+
+  $("results").innerHTML =
+    hotels.map(
+      hotel => {
+        const benefits =
+          hotel.benefits ||
+          [];
+
+        const selectedBenefits =
+          benefits
+            .slice(0, 4)
+            .map(
+              benefit =>
+                `<span>${escapeHtml(
+                  benefit
+                )}</span>`
+            )
+            .join("");
+
+        const offerChip =
+          hotel.amexTriggered
+            ? `<span>💳 Amex -€${Math.round(
+                hotel.amexCredit
+              )}</span>`
+            : "";
+
+        const promoChip =
+          hotel.promotion
+            ? `<span>🎁 20% personal promotion</span>`
+            : "";
+
+        const image =
+          hotel.image
+            ? `
+              <img
+                class="hotel-image"
+                src="${escapeHtml(
+                  hotel.image
+                )}"
+                alt="${escapeHtml(
+                  hotel.name
+                )}"
+                loading="lazy"
+                onerror="this.style.display='none'"
+              >
+            `
+            : `
+              <div class="hotel-image hotel-image-empty">
+                🏨
+              </div>
+            `;
+
+        const rating =
+          hotel.rating
+            ? `
+              ⭐ ${hotel.rating.toFixed(
+                1
+              )}
+              ${
+                hotel.reviewCount
+                  ? `(${hotel.reviewCount.toLocaleString(
+                      "en-GB"
+                    )})`
+                  : ""
+              }
+            `
+            : "";
+
+        const stars =
+          hotel.stars
+            ? "★".repeat(
+                Math.min(
+                  hotel.stars,
+                  5
+                )
+              )
+            : "";
+
+        const booking =
+          `
+          <button
+            class="view-button booking-button"
+            type="button"
+            data-book-hotel="${escapeHtml(
+              hotel.name
+            )}"
+            data-book-location="${escapeHtml(
+              $("city")?.value ||
+              ""
+            )}"
+          >
+            View / compare
+          </button>
+          `;
+
+        return `
+          <article class="hotel">
+
+            ${image}
+
+            <div class="hotel-main">
+
+              <h3 class="hotel-name">
+                ${escapeHtml(
+                  hotel.name
+                )}
+              </h3>
+
+              <p class="hotel-brand">
+                ${escapeHtml(
+                  hotel.brand ||
+                  "Hotel"
+                )}
+
+                ${
+                  hotel.program
+                    ? ` · ${escapeHtml(
+                        hotel.program
+                      )}`
+                    : ""
+                }
+
+                ${
+                  hotel.program
+                    ? ` · ${escapeHtml(
+                        hotel.status
+                      )}`
+                    : ""
+                }
+              </p>
+
+              <div class="hotel-meta">
+
+                ${
+                  rating
+                    ? `<span>${rating}</span>`
+                    : ""
+                }
+
+                ${
+                  stars
+                    ? `<span class="hotel-stars">${stars}</span>`
+                    : ""
+                }
+
+                ${
+                  hotel.address
+                    ? `<span>${escapeHtml(
+                        hotel.address
+                      )}</span>`
+                    : ""
+                }
+
+              </div>
+
+              <div class="hotel-amenities">
+
+                ${
+                  hotel.amenities
+                    .slice(0, 8)
+                    .map(
+                      amenityChip
+                    )
+                    .join("")
+                }
+
+              </div>
+
+              ${
+                selectedBenefits ||
+                promoChip ||
+                offerChip
+                  ? `
+                    <div class="special">
+                      ${selectedBenefits}
+                      ${promoChip}
+                      ${offerChip}
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+
+            <div class="hotel-price">
+
+              <div>
+
+                <div class="price-label">
+                  Effective stay
+                </div>
+
+                <div class="price-source">
+                  Live Google Hotels price
+                </div>
+
+                <div class="effective">
+                  €${Math.round(
+                    hotel.effective
+                  )}
+                </div>
+
+                <div class="nightly">
+                  €${Math.round(
+                    hotel.effectiveNightly
+                  )}
+                  / night
+                </div>
+
+                <div class="price-detail">
+
+                  Original stay:
+                  €${Math.round(
+                    hotel.total
+                  )}
+
+                  <br>
+
+                  €${Math.round(
+                    hotel.nightly
+                  )}
+                  / night
+
+                  ${
+                    hotel.promotion
+                      ? `<br>🎁 Personal promotion: -20%`
+                      : ""
+                  }
+
+                  ${
+                    hotel.amexTriggered
+                      ? `<br>💳 Amex credit: -€${Math.round(
+                          hotel.amexCredit
+                        )}`
+                      : ""
+                  }
+
+                </div>
+
+              </div>
+
+              ${booking}
+
+            </div>
+
+          </article>
+        `;
+      }
+    ).join("");
+
+  updateFilterCount();
+}
+
+/* ---------------------------------------------------------
+   FILTER COUNT
+--------------------------------------------------------- */
+
+function updateFilterCount() {
+  const programChecks =
+    document.querySelectorAll(
+      'input.program-filter:checked, input[data-filter="program"]:checked'
+    ).length;
+
+  const amenityChecks =
+    document.querySelectorAll(
+      'input.amenity-filter:checked, input[data-filter="amenity"]:checked'
+    ).length;
+
+  const extras =
+    Number(
+      Boolean(
+        $("onlyBenefits")
+          ?.checked
+      )
+    ) +
+    Number(
+      Boolean(
+        $("onlyOffers")
+          ?.checked
+      )
+    );
+
+  const count =
+    programChecks +
+    amenityChecks +
+    extras;
+
+  if (
+    $("activeFilterCount")
+  ) {
+    $("activeFilterCount")
+      .textContent =
+      count
+        ? `${count} filter${
+            count === 1
+              ? ""
+              : "s"
+          } active`
+        : "No filters";
+  }
+}
+
+/* ---------------------------------------------------------
+   STATUS FIELDS
+--------------------------------------------------------- */
+
+function buildStatusFields() {
+  const container =
+    $("statusFields");
+
+  if (!container)
+    return;
+
+  container.innerHTML =
+    Object.entries(
+      LOYALTY_PROGRAMS
+    )
+      .map(
+        ([program, statuses]) =>
+          `
+          <div class="status-row">
+
+            <span class="status-name">
+              ${escapeHtml(
+                program
+              )}
+            </span>
+
+            <select
+              data-program-status="${escapeHtml(
+                program
+              )}"
+            >
+
+              ${statuses
+                .map(
+                  status =>
+                    `
+                    <option
+                      value="${escapeHtml(
+                        status
+                      )}"
+                      ${
+                        status ===
+                        PERSONAL_STATUS[
+                          program
+                        ]
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${escapeHtml(
+                        status
+                      )}
+                    </option>
+                    `
+                )
+                .join("")}
+
+            </select>
+
+          </div>
+          `
+      )
+      .join("");
+
+  container
+    .querySelectorAll(
+      "[data-program-status]"
+    )
+    .forEach(
+      select => {
+        select.addEventListener(
+          "change",
+          () => {
+            PERSONAL_STATUS[
+              select.dataset
+                .programStatus
+            ] =
+              select.value;
+
+            render();
+          }
+        );
+      }
+    );
+}
+
+/* ---------------------------------------------------------
+   POINTS
+--------------------------------------------------------- */
+
+function buildPointsFields() {
+  const container =
+    $("pointsFields");
+
+  if (!container)
+    return;
+
+  container.innerHTML =
+    Object.keys(
+      LOYALTY_PROGRAMS
+    )
+      .map(
+        program =>
+          `
+          <div class="status-row">
+
+            <span class="status-name">
+              ${escapeHtml(
+                program
+              )}
+            </span>
+
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              value="${
+                PERSONAL_POINTS[
+                  program
+                ]
+              }"
+              data-program-points="${escapeHtml(
+                program
+              )}"
+            >
+
+          </div>
+          `
+      )
+      .join("");
+
+  container
+    .querySelectorAll(
+      "[data-program-points]"
+    )
+    .forEach(
+      input => {
+        input.addEventListener(
+          "input",
+          () => {
+            PERSONAL_POINTS[
+              input.dataset
+                .programPoints
+            ] =
+              Number(
+                input.value
+              ) || 0;
+          }
+        );
+      }
+    );
+}
+
+/* ---------------------------------------------------------
+   AMEX FIELDS
+--------------------------------------------------------- */
+
+function buildAmexFields() {
+  const container =
+    $("amexFields");
+
+  if (!container)
+    return;
+
+  container.innerHTML =
+    amexOffers
+      .map(
+        (offer, index) =>
+          `
+          <div class="amex-row">
+
+            <input
+              value="${escapeHtml(
+                offer.name || ""
+              )}"
+              placeholder="Hotel / chain"
+              data-amex-name="${index}"
+            >
+
+            <input
+              type="number"
+              min="0"
+              step="10"
+              value="${Number(
+                offer.spend || 0
+              )}"
+              placeholder="Spend"
+              data-amex-spend="${index}"
+            >
+
+            <input
+              type="number"
+              min="0"
+              step="5"
+              value="${Number(
+                offer.credit || 0
+              )}"
+              placeholder="Credit"
+              data-amex-credit="${index}"
+            >
+
+            <button
+              type="button"
+              class="remove-amex"
+              data-remove-amex="${index}"
+            >
+              ×
+            </button>
+
+          </div>
+          `
+      )
+      .join("");
+
+  container
+    .querySelectorAll(
+      "[data-amex-name]"
+    )
+    .forEach(
+      element => {
+        element.addEventListener(
+          "input",
+          () => {
+            amexOffers[
+              Number(
+                element.dataset
+                  .amexName
+              )
+            ].name =
+              element.value;
+
+            render();
+          }
+        );
+      }
+    );
+
+  container
+    .querySelectorAll(
+      "[data-amex-spend]"
+    )
+    .forEach(
+      element => {
+        element.addEventListener(
+          "input",
+          () => {
+            amexOffers[
+              Number(
+                element.dataset
+                  .amexSpend
+              )
+            ].spend =
+              Number(
+                element.value
+              ) || 0;
+
+            render();
+          }
+        );
+      }
+    );
+
+  container
+    .querySelectorAll(
+      "[data-amex-credit]"
+    )
+    .forEach(
+      element => {
+        element.addEventListener(
+          "input",
+          () => {
+            amexOffers[
+              Number(
+                element.dataset
+                  .amexCredit
+              )
+            ].credit =
+              Number(
+                element.value
+              ) || 0;
+
+            render();
+          }
+        );
+      }
+    );
+
+  container
+    .querySelectorAll(
+      "[data-remove-amex]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            amexOffers.splice(
+              Number(
+                button.dataset
+                  .removeAmex
+              ),
+              1
+            );
+
+            buildAmexFields();
+            render();
+          }
+        );
+      }
+    );
+}
+
+/* ---------------------------------------------------------
+   BOOKING MODAL
+--------------------------------------------------------- */
+
+function closeBookingModal() {
+  document
+    .getElementById(
+      "bookingModal"
+    )
+    ?.remove();
+}
+
+function openBookingModal(
+  hotelName,
+  location
+) {
+  closeBookingModal();
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+  modal.id =
+    "bookingModal";
+
+  modal.className =
+    "booking-modal";
+
+  modal.innerHTML = `
+    <div
+      class="booking-modal-backdrop"
+      data-close-booking
+    ></div>
+
+    <div
+      class="booking-modal-panel"
+      role="dialog"
+      aria-modal="true"
+    >
+
+      <div class="booking-modal-head">
+
+        <div>
+          <p class="eyebrow">
+            BOOKING OPTIONS
+          </p>
+
+          <h2>
+            ${escapeHtml(
+              hotelName
+            )}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="drawer-close"
+          data-close-booking
+        >
+          Close
+        </button>
+
+      </div>
+
+      <p
+        id="bookingLoading"
+        class="booking-loading"
+      >
+        Finding booking links…
+      </p>
+
+      <div
+        id="bookingLinks"
+        class="booking-links"
+      ></div>
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    modal
+  );
+
+  const params =
+    new URLSearchParams({
+      hotel_name:
+        hotelName,
+      location:
+        location || ""
+    });
+
+  fetch(
+    `/api/links?${params.toString()}`,
+    {
+      headers: {
+        Accept:
+          "application/json"
+      }
+    }
+  )
+    .then(
+      async response => {
+        const data =
+          await response.json();
+
+        if (
+          !response.ok ||
+          data?.error
+        ) {
+          throw new Error(
+            data?.error ||
+            "No booking links found."
+          );
+        }
+
+        return data;
+      }
+    )
+    .then(
+      data => {
+        const loading =
+          document.getElementById(
+            "bookingLoading"
+          );
+
+        const container =
+          document.getElementById(
+            "bookingLinks"
+          );
+
+        if (loading) {
+          loading.style.display =
+            "none";
+        }
+
+        const labels = {
+          booking_com:
+            "Booking.com",
+          expedia:
+            "Expedia",
+          hotels_com:
+            "Hotels.com",
+          agoda:
+            "Agoda",
+          tripadvisor:
+            "Tripadvisor",
+          kayak:
+            "KAYAK",
+          priceline:
+            "Priceline",
+          marriott:
+            "Marriott",
+          hilton:
+            "Hilton",
+          ihg:
+            "IHG",
+          official_website:
+            "Official website"
+        };
+
+        const links =
+          Object.entries(
+            data?.links || {}
+          ).filter(
+            ([, value]) =>
+              typeof value ===
+                "string" &&
+              value.startsWith(
+                "http"
+              )
+          );
+
+        if (!links.length) {
+          container.innerHTML =
+            `
+            <p class="booking-empty">
+              No booking platform links were returned.
+            </p>
+            `;
+
+          return;
+        }
+
+        container.innerHTML =
+          links
+            .map(
+              ([key, value]) =>
+                `
+                <a
+                  class="booking-link"
+                  href="${escapeHtml(
+                    value
+                  )}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <span>
+                    ${escapeHtml(
+                      labels[key] ||
+                      key
+                    )}
+                  </span>
+
+                  <span>
+                    ↗
+                  </span>
+                </a>
+                `
+            )
+            .join("");
+      }
+    )
+    .catch(
+      error => {
+        const loading =
+          document.getElementById(
+            "bookingLoading"
+          );
+
+        const container =
+          document.getElementById(
+            "bookingLinks"
+          );
+
+        if (loading) {
+          loading.style.display =
+            "none";
+        }
+
+        if (container) {
+          container.innerHTML =
+            `
+            <p class="booking-empty">
+              ${escapeHtml(
+                error.message
+              )}
+            </p>
+            `;
+        }
+      }
+    );
+}
+
+function setupBookingButtons() {
+  document.addEventListener(
+    "click",
+    event => {
+      const button =
+        event.target.closest(
+          "[data-book-hotel]"
+        );
+
+      if (button) {
+        openBookingModal(
+          button.dataset
+            .bookHotel,
+          button.dataset
+            .bookLocation
+        );
+
+        return;
+      }
+
+      if (
+        event.target.closest(
+          "[data-close-booking]"
+        )
+      ) {
+        closeBookingModal();
+      }
+    }
+  );
+}
+
+/* ---------------------------------------------------------
+   SETUP
+--------------------------------------------------------- */
+
+function setup() {
+  setDefaultDates();
+
+  if (
+    $("onlyBenefits")
+  ) {
+    $("onlyBenefits")
+      .checked = false;
+  }
+
+  if (
+    $("onlyOffers")
+  ) {
+    $("onlyOffers")
+      .checked = false;
+  }
+
+  $("searchButton")
+    ?.addEventListener(
+      "click",
+      searchLive
+    );
+
+  $("sort")
+    ?.addEventListener(
+      "change",
+      event => {
+        state.sort =
+          event.target.value;
+
+        render();
+      }
+    );
+
+  document
+    .querySelectorAll(
+      ".filter"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            document
+              .querySelectorAll(
+                ".filter"
+              )
+              .forEach(
+                item =>
+                  item.classList.remove(
+                    "active"
+                  )
+              );
+
+            button.classList.add(
+              "active"
+            );
+
+            state.chain =
+              button.dataset
+                .chain ||
+              "all";
+
+            render();
+          }
+        );
+      }
+    );
+
+  $("openFilters")
+    ?.addEventListener(
+      "click",
+      () => {
+        $("filterDrawer")
+          ?.classList.add(
+            "open"
+          );
+
+        $("filterDrawer")
+          ?.setAttribute(
+            "aria-hidden",
+            "false"
+          );
+      }
+    );
+
+  $("closeFilters")
+    ?.addEventListener(
+      "click",
+      () => {
+        $("filterDrawer")
+          ?.classList.remove(
+            "open"
+          );
+
+        $("filterDrawer")
+          ?.setAttribute(
+            "aria-hidden",
+            "true"
+          );
+      }
+    );
+
+  document
+    .querySelectorAll(
+      'input.program-filter, input[data-filter="program"]'
+    )
+    .forEach(
+      input => {
+        input.addEventListener(
+          "change",
+          () => {
+            if (
+              input.checked
+            ) {
+              state.activePrograms.add(
+                input.value
+              );
+            } else {
+              state.activePrograms.delete(
+                input.value
+              );
+            }
+
+            updateFilterCount();
+            render();
+          }
+        );
+      }
+    );
+
+  document
+    .querySelectorAll(
+      'input.amenity-filter, input[data-filter="amenity"]'
+    )
+    .forEach(
+      input => {
+        input.addEventListener(
+          "change",
+          () => {
+            if (
+              input.checked
+            ) {
+              state.amenities.add(
+                input.value
+              );
+            } else {
+              state.amenities.delete(
+                input.value
+              );
+            }
+
+            updateFilterCount();
+            render();
+          }
+        );
+      }
+    );
+
+  $("onlyBenefits")
+    ?.addEventListener(
+      "change",
+      () => {
+        updateFilterCount();
+        render();
+      }
+    );
+
+  $("onlyOffers")
+    ?.addEventListener(
+      "change",
+      () => {
+        updateFilterCount();
+        render();
+      }
+    );
+
+  $("applyFilters")
+    ?.addEventListener(
+      "click",
+      () => {
+        render();
+
+        $("filterDrawer")
+          ?.classList.remove(
+            "open"
+          );
+
+        $("filterDrawer")
+          ?.setAttribute(
+            "aria-hidden",
+            "true"
+          );
+      }
+    );
+
+  $("resetFilters")
+    ?.addEventListener(
+      "click",
+      () => {
+        document
+          .querySelectorAll(
+            'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"]'
+          )
+          .forEach(
+            input => {
+              input.checked =
+                false;
+            }
+          );
+
+        if (
+          $("onlyBenefits")
+        ) {
+          $("onlyBenefits")
+            .checked =
+            false;
+        }
+
+        if (
+          $("onlyOffers")
+        ) {
+          $("onlyOffers")
+            .checked =
+            false;
+        }
+
+        state.chain =
+          "all";
+
+        state.activePrograms
+          .clear();
+
+        state.amenities
+          .clear();
+
+        document
+          .querySelectorAll(
+            ".filter"
+          )
+          .forEach(
+            button =>
+              button.classList.remove(
+                "active"
+              )
+          );
+
+        updateFilterCount();
+        render();
+      }
+    );
+
+  $("addAmex")
+    ?.addEventListener(
+      "click",
+      () => {
+        amexOffers.push({
+          name: "",
+          spend: 0,
+          credit: 0
+        });
+
+        buildAmexFields();
+      }
+    );
+
+  setupBookingButtons();
+
+  buildStatusFields();
+  buildPointsFields();
+  buildAmexFields();
+  updateFilterCount();
+
+  render();
+}
+
+if (
+  document.readyState ===
+  "loading"
+) {
+  document.addEventListener(
+    "DOMContentLoaded",
+    setup
+  );
+} else {
+  setup();
+}
