@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <title>S.M.B. HOTEL LOYALTY</title>
+
+  <link rel="icon" type="image/png" href="logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+</head>
+
+<body>
+
+  <div class="site">
+
+    <header class="topbar">
+
+      <a class="brand" href="#">
+        <img src="logo.png" alt="Hotel Loyalty logo">
+        <span>S.M.B. <strong>HOTEL LOYALTY</strong></span>
+      </a>
+
+      <div class="top-note">
+        Private hotel finder
+      </div>
+
+    </header>
+
+
+    <main>
+
+      <section class="hero-compact">
+
+        <div class="accent-line"></div>
+
+        <p class="eyebrow">
+          YOUR STAY · YOUR STATUS · YOUR VALUE
+        </p>
+
+        <h1>
+          Hotel Loyalty
+        </h1>
+
+        <p class="intro">
+          Compare hotels by price, status benefits and personal offers.
+        </p>
+
+      </section>
+
+
+      <section class="search-section">
+
+        <div class="search-grid search-grid-compact">
+
+          <label>
+            <span>City</span>
+
+            <input
+              id="city"
+              type="text"
+              value="Frankfurt"
+              placeholder="Frankfurt"
+            >
+          </label>
+
+
+          <label>
+            <span>Check-in</span>
+
+            <input
+              id="checkIn"
+              type="date"
+            >
+          </label>
+
+
+          <label>
+            <span>Check-out</span>
+
+            <input
+              id="checkOut"
+              type="date"
+            >
+          </label>
+
+
+          <label>
+            <span>Guests</span>
+
+            <select id="guests">
+
+              <option>1</option>
+
+              <option selected>
+                2
+              </option>
+
+              <option>3</option>
+
+              <option>4</option>
+
+              <option>5</option>
+
+              <option>6</option>
+
+            </select>
+
+          </label>
+
+
+          <button
+            id="searchButton"
+            class="search-button"
+            type="button"
+          >
+            Search
+          </button>
+
+        </div>
+
+
+        <div class="quick-row">
+
+          <button
+            id="openFilters"
+            class="filter-trigger"
+            type="button"
+          >
+            Filters
+          </button>
+
+          <span
+            id="activeFilterCount"
+            class="active-filter-count"
+          >
+            No filters
+          </span>
+
+        </div>
+
+      </section>
+
+
+      <aside
+        id="filterDrawer"
+        class="filter-drawer"
+        aria-hidden="true"
+      >
+
+        <div class="drawer-header">
+
+          <div>
+
+            <p class="eyebrow">
+              PERSONAL SETTINGS
+            </p>
+
+            <h2>
+              Filters
+            </h2>
+
+          </div>
+
+
+          <button
+            id="closeFilters"
+            class="drawer-close"
+            type="button"
+          >
+            Close
+          </button>
+
+        </div>
+
+
+        <div class="drawer-section">
+
+          <p class="drawer-label">
+            Loyalty program
+          </p>
+
+
+          <div class="drawer-grid">
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Hilton"
+                data-filter="program"
+              >
+              <span>Hilton</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Marriott"
+                data-filter="program"
+              >
+              <span>Marriott</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="IHG"
+                data-filter="program"
+              >
+              <span>IHG</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Accor"
+                data-filter="program"
+              >
+              <span>Accor</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Radisson"
+                data-filter="program"
+              >
+              <span>Radisson</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Meliá"
+                data-filter="program"
+              >
+              <span>Meliá</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="GHA"
+                data-filter="program"
+              >
+              <span>GHA</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Wyndham"
+                data-filter="program"
+              >
+              <span>Wyndham</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="WorldHotels"
+                data-filter="program"
+              >
+              <span>WorldHotels</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Best Western"
+                data-filter="program"
+              >
+              <span>Best Western</span>
+            </label>
+
+          </div>
+
+        </div>
+
+
+        <div class="drawer-section">
+          <p class="drawer-label">Hotel classification</p>
+          <div class="drawer-grid stars-filter-grid">
+            <label class="drawer-check"><input type="checkbox" value="1" data-filter="stars"><span>1 star</span></label>
+            <label class="drawer-check"><input type="checkbox" value="2" data-filter="stars"><span>2 stars</span></label>
+            <label class="drawer-check"><input type="checkbox" value="3" data-filter="stars"><span>3 stars</span></label>
+            <label class="drawer-check"><input type="checkbox" value="4" data-filter="stars"><span>4 stars</span></label>
+            <label class="drawer-check"><input type="checkbox" value="5" data-filter="stars"><span>5 stars</span></label>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+
+          <p class="drawer-label">
+            Amenities
+          </p>
+
+
+          <div class="drawer-grid">
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Pool"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Pool</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Sauna"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Sauna</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Spa"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Spa</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Fitness"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Fitness</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Breakfast"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Breakfast</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Parking"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Parking</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Restaurant"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Restaurant</span>
+            </label>
+
+
+            <label class="drawer-check">
+              <input
+                type="checkbox"
+                value="Bar"
+                data-type="amenity" data-filter="amenity"
+              >
+              <span>Bar</span>
+            </label>
+
+          </div>
+
+        </div>
+
+
+        <div class="drawer-section two-col">
+
+          <label class="drawer-check">
+
+            <input
+              id="onlyBenefits"
+              type="checkbox"
+            >
+
+            <span>
+              Only hotels with benefits
+            </span>
+
+          </label>
+
+
+          <label class="drawer-check">
+
+            <input
+              id="onlyOffers"
+              type="checkbox"
+            >
+
+            <span>
+              Only hotels with a personal offer
+            </span>
+
+          </label>
+
+        </div>
+
+
+        <div class="drawer-section">
+
+          <p class="drawer-label">
+            My loyalty status
+          </p>
+
+          <div
+            id="statusFields"
+            class="status-fields"
+          ></div>
+
+        </div>
+
+
+        <div class="drawer-section">
+
+          <p class="drawer-label">
+            My points
+          </p>
+
+          <div
+            id="pointsFields"
+            class="status-fields"
+          ></div>
+
+        </div>
+
+
+        <div class="drawer-section">
+
+          <p class="drawer-label">
+            Amex Offers
+          </p>
+
+          <p class="drawer-help">
+            Add offers such as WorldHotels · €250 spend · €50 credit.
+          </p>
+
+          <div id="amexFields"></div>
+
+          <button
+            id="addAmex"
+            class="secondary-button"
+            type="button"
+          >
+            Add offer
+          </button>
+
+        </div>
+
+
+        <div class="drawer-actions">
+
+          <button
+            id="resetFilters"
+            class="secondary-button"
+            type="button"
+          >
+            Reset filters
+          </button>
+
+
+          <button
+            id="applyFilters"
+            class="search-button"
+            type="button"
+          >
+            Apply
+          </button>
+
+        </div>
+
+      </aside>
+
+
+      <section class="results-head">
+
+        <div>
+
+          <p class="eyebrow">
+            RESULTS
+          </p>
+
+          <h2 id="resultTitle">
+            Hotels in Frankfurt
+          </h2>
+
+          <p
+            id="resultMeta"
+            class="muted"
+          >
+            Select your dates and search.
+          </p>
+
+        </div>
+
+
+        <label class="sort-wrap">
+
+          <span>
+            Sort
+          </span>
+
+          <select id="sort">
+
+            <option value="effective">
+              Effective price
+            </option>
+
+            <option value="value">
+              Best value
+            </option>
+
+            <option value="benefits">
+              Best benefits
+            </option>
+
+            <option value="rating">
+              Hotel rating
+            </option>
+
+          </select>
+
+        </label>
+
+      </section>
+
+
+      <section class="compare-bar" id="compareBar" hidden>
+        <div>
+          <span class="eyebrow">COMPARE</span>
+          <strong id="compareCount">0 selected</strong>
+        </div>
+        <div class="compare-bar-actions">
+          <button id="clearCompare" class="secondary-button" type="button">Clear</button>
+          <button id="openCompare" class="search-button" type="button">Compare</button>
+        </div>
+      </section>
+
+      <section
+        id="results"
+        class="results"
+      ></section>
+
+      <div id="compareModal" class="compare-modal" hidden>
+        <div class="compare-backdrop" data-close-compare></div>
+        <div class="compare-panel" role="dialog" aria-modal="true" aria-labelledby="compareTitle">
+          <div class="compare-head">
+            <div><p class="eyebrow">HOTEL COMPARISON</p><h2 id="compareTitle">Compare selected hotels</h2></div>
+            <button class="drawer-close" type="button" data-close-compare>Close</button>
+          </div>
+          <div id="compareContent"></div>
+        </div>
+      </div>
+
+
+      <section
+        class="empty-state"
+        id="emptyState"
+      >
+
+        <p class="eyebrow">
+          READY
+        </p>
+
+        <p>
+          No results yet. Search for a city.
+        </p>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
