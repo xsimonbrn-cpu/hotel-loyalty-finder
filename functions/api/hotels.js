@@ -20,7 +20,8 @@ Features:
 - Cloudflare caching
 */
 
-const SERPAPI_URL = "https://serpapi.com/search.json";
+const SERPAPI_URL =
+  "https://serpapi.com/search.json";
 
 function corsHeaders() {
   return {
@@ -33,14 +34,19 @@ function corsHeaders() {
 }
 
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: corsHeaders()
-  });
+  return new Response(
+    JSON.stringify(data),
+    {
+      status,
+      headers: corsHeaders()
+    }
+  );
 }
 
 function validDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+  return /^\d{4}-\d{2}-\d{2}$/.test(
+    String(value || "")
+  );
 }
 
 function cleanText(value) {
@@ -50,15 +56,23 @@ function cleanText(value) {
 }
 
 function number(value) {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
     return null;
   }
 
   if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
+    return Number.isFinite(value)
+      ? value
+      : null;
   }
 
-  if (typeof value === "object") {
+  if (
+    typeof value === "object"
+  ) {
     return number(
       value.extracted_lowest ??
       value.extracted_price ??
@@ -70,65 +84,64 @@ function number(value) {
     );
   }
 
-  const text = String(value)
-    .replace(/[^\d.,-]/g, "")
-    .trim();
+  let text =
+    String(value)
+      .replace(/[^\d.,-]/g, "")
+      .trim();
 
-  if (!text) return null;
-
-  /*
-  Handles:
-  1234
-  1,234
-  1.234
-  1234.50
-  */
-
-  let normalized = text;
+  if (!text) {
+    return null;
+  }
 
   if (
-    normalized.includes(",") &&
-    normalized.includes(".")
+    text.includes(",") &&
+    text.includes(".")
   ) {
     if (
-      normalized.lastIndexOf(",") >
-      normalized.lastIndexOf(".")
+      text.lastIndexOf(",") >
+      text.lastIndexOf(".")
     ) {
-      normalized = normalized
-        .replace(/\./g, "")
-        .replace(",", ".");
+      text =
+        text
+          .replace(/\./g, "")
+          .replace(",", ".");
     } else {
-      normalized = normalized.replace(/,/g, "");
+      text =
+        text.replace(/,/g, "");
     }
   } else if (
-    normalized.includes(",") &&
-    !normalized.includes(".")
+    text.includes(",")
   ) {
-    const parts = normalized.split(",");
+    const parts =
+      text.split(",");
 
     if (
       parts.length === 2 &&
       parts[1].length <= 2
     ) {
-      normalized = normalized.replace(",", ".");
+      text =
+        text.replace(",", ".");
     } else {
-      normalized = normalized.replace(/,/g, "");
+      text =
+        text.replace(/,/g, "");
     }
   } else if (
-    normalized.includes(".") &&
-    !normalized.includes(",")
+    text.includes(".")
   ) {
-    const parts = normalized.split(".");
+    const parts =
+      text.split(".");
 
     if (
       parts.length === 2 &&
       parts[1].length === 3
     ) {
-      normalized = normalized.replace(".", "");
+      text =
+        text.replace(".", "");
     }
   }
 
-  const parsed = Number(normalized);
+  const parsed =
+    Number(text);
 
   return Number.isFinite(parsed)
     ? parsed
@@ -136,7 +149,9 @@ function number(value) {
 }
 
 function first(obj, keys) {
-  for (const key of keys) {
+  for (
+    const key of keys
+  ) {
     if (
       obj &&
       obj[key] !== null &&
@@ -150,23 +165,84 @@ function first(obj, keys) {
   return null;
 }
 
-function nightsBetween(checkIn, checkOut) {
-  const a = new Date(`${checkIn}T00:00:00`);
-  const b = new Date(`${checkOut}T00:00:00`);
+function nightsBetween(
+  checkIn,
+  checkOut
+) {
+  const a =
+    new Date(
+      `${checkIn}T00:00:00`
+    );
+
+  const b =
+    new Date(
+      `${checkOut}T00:00:00`
+    );
+
+  const diff =
+    Math.round(
+      (
+        b.getTime() -
+        a.getTime()
+      ) / 86400000
+    );
 
   return Math.max(
-    Math.round(
-      (b.getTime() - a.getTime()) / 86400000
-    ),
+    diff,
     1
   );
 }
 
 /* ---------------------------------------------------------
-   AMENITIES
+ADDRESS
 --------------------------------------------------------- */
 
-function normalizeAmenities(property) {
+function buildAddress(property) {
+  const address =
+    property?.address ||
+    property?.location ||
+    property?.formatted_address ||
+    null;
+
+  if (
+    typeof address ===
+    "string"
+  ) {
+    return cleanText(address);
+  }
+
+  if (
+    address &&
+    typeof address ===
+    "object"
+  ) {
+    const parts = [
+      address.street,
+      address.street_address,
+      address.housenumber,
+      address.city,
+      address.postal_code,
+      address.zip,
+      address.country
+    ].filter(Boolean);
+
+    if (parts.length) {
+      return cleanText(
+        parts.join(", ")
+      );
+    }
+  }
+
+  return null;
+}
+
+/* ---------------------------------------------------------
+AMENITIES
+--------------------------------------------------------- */
+
+function normalizeAmenities(
+  property
+) {
   const result = [];
 
   const raw =
@@ -175,31 +251,48 @@ function normalizeAmenities(property) {
     [];
 
   if (Array.isArray(raw)) {
-    for (const item of raw) {
-      if (typeof item === "string") {
-        const value = cleanText(item);
-        if (value) result.push(value);
+    for (
+      const item of raw
+    ) {
+      if (
+        typeof item ===
+        "string"
+      ) {
+        const value =
+          cleanText(item);
+
+        if (value) {
+          result.push(value);
+        }
+
         continue;
       }
 
       if (
         item &&
-        typeof item === "object"
+        typeof item ===
+        "object"
       ) {
-        const value = cleanText(
-          first(item, [
-            "name",
-            "label",
-            "title"
-          ])
-        );
+        const value =
+          cleanText(
+            first(
+              item,
+              [
+                "name",
+                "label",
+                "title"
+              ]
+            )
+          );
 
-        if (value) result.push(value);
+        if (value) {
+          result.push(value);
+        }
       }
     }
   }
 
-  const description = [
+  const textSources = [
     property?.description,
     property?.amenities_text,
     property?.hotel_amenities
@@ -218,86 +311,162 @@ function normalizeAmenities(property) {
     ["Sauna", /sauna/i]
   ];
 
-  for (const [name, pattern] of detected) {
-    if (pattern.test(description)) {
+  for (
+    const [
+      name,
+      pattern
+    ] of detected
+  ) {
+    if (
+      pattern.test(
+        textSources
+      )
+    ) {
       result.push(name);
     }
   }
 
-  return [...new Set(result)];
+  return [
+    ...new Set(
+      result
+        .filter(Boolean)
+    )
+  ];
 }
 
 /* ---------------------------------------------------------
-   IMAGES
+IMAGES
 --------------------------------------------------------- */
 
-function normalizeImages(property) {
+function normalizeImages(
+  property
+) {
   const images = [];
 
-  const add = (value) => {
-    if (
-      typeof value === "string" &&
-      value.trim()
-    ) {
-      images.push(value.trim());
-    }
-  };
+  const addImage =
+    value => {
+      if (
+        typeof value ===
+          "string" &&
+        value.trim()
+      ) {
+        images.push(
+          value.trim()
+        );
+      }
+    };
 
-  if (Array.isArray(property?.images)) {
-    for (const item of property.images) {
-      if (typeof item === "string") {
-        add(item);
+  if (
+    Array.isArray(
+      property?.images
+    )
+  ) {
+    for (
+      const item of
+      property.images
+    ) {
+      if (
+        typeof item ===
+        "string"
+      ) {
+        addImage(item);
         continue;
       }
 
       if (
         item &&
-        typeof item === "object"
+        typeof item ===
+        "object"
       ) {
-        add(
-          item.original_image ||
-          item.image ||
-          item.url ||
-          item.src ||
-          item.thumbnail
+        addImage(
+          first(
+            item,
+            [
+              "original_image",
+              "original",
+              "image",
+              "image_url",
+              "url",
+              "src",
+              "thumbnail"
+            ]
+          )
         );
       }
     }
   }
 
-  add(property?.original_image);
-  add(property?.image);
-  add(property?.image_url);
-  add(property?.thumbnail);
-  add(property?.thumbnail_url);
+  addImage(
+    property?.original_image
+  );
 
-  return [...new Set(images)];
+  addImage(
+    property?.image
+  );
+
+  addImage(
+    property?.image_url
+  );
+
+  addImage(
+    property?.thumbnail
+  );
+
+  addImage(
+    property?.thumbnail_url
+  );
+
+  if (
+    property?.image &&
+    typeof property.image ===
+      "object"
+  ) {
+    addImage(
+      first(
+        property.image,
+        [
+          "original_image",
+          "image",
+          "url",
+          "src"
+        ]
+      )
+    );
+  }
+
+  return [
+    ...new Set(images)
+  ];
 }
 
 /* ---------------------------------------------------------
-   BOOKING URL
+BOOKING URL
 --------------------------------------------------------- */
 
-function normalizeBookingUrl(property) {
-  const direct = first(property, [
-    "link",
-    "hotel_url",
-    "booking_url",
-    "website",
-    "url"
-  ]);
+function normalizeBookingUrl(
+  property
+) {
+  const direct =
+    first(
+      property,
+      [
+        "link",
+        "hotel_url",
+        "booking_url",
+        "website",
+        "url"
+      ]
+    );
 
   if (
-    typeof direct === "string" &&
-    direct.startsWith("http")
+    typeof direct ===
+      "string" &&
+    /^https?:\/\//i.test(
+      direct
+    )
   ) {
     return direct;
   }
-
-  /*
-  Google Hotels also exposes booking providers
-  through the prices array.
-  */
 
   const providers =
     property?.prices ||
@@ -305,17 +474,39 @@ function normalizeBookingUrl(property) {
     property?.providers ||
     [];
 
-  if (Array.isArray(providers)) {
-    for (const provider of providers) {
-      const link = first(provider, [
-        "link",
-        "url",
-        "booking_url"
-      ]);
+  if (
+    Array.isArray(
+      providers
+    )
+  ) {
+    for (
+      const provider of
+      providers
+    ) {
+      if (
+        !provider ||
+        typeof provider !==
+          "object"
+      ) {
+        continue;
+      }
+
+      const link =
+        first(
+          provider,
+          [
+            "link",
+            "url",
+            "booking_url"
+          ]
+        );
 
       if (
-        typeof link === "string" &&
-        link.startsWith("http")
+        typeof link ===
+          "string" &&
+        /^https?:\/\//i.test(
+          link
+        )
       ) {
         return link;
       }
@@ -326,79 +517,99 @@ function normalizeBookingUrl(property) {
 }
 
 /* ---------------------------------------------------------
-   PRICE
+PRICE
 --------------------------------------------------------- */
 
-function normalizePrice(property, nights) {
+function normalizePrice(
+  property,
+  nights
+) {
   let nightly = null;
   let total = null;
 
-  /*
-  Official SerpApi Google Hotels structure:
-
-  rate_per_night.extracted_lowest
-  total_rate.extracted_lowest
-  */
-
   const rate =
-    property?.rate_per_night || {};
+    property?.rate_per_night ||
+    {};
 
   const totalRate =
-    property?.total_rate || {};
+    property?.total_rate ||
+    {};
 
-  nightly = number(
-    rate.extracted_lowest ??
-    rate.extracted_price ??
-    rate.lowest ??
-    null
-  );
-
-  total = number(
-    totalRate.extracted_lowest ??
-    totalRate.extracted_total ??
-    totalRate.lowest ??
-    null
-  );
-
-  /*
-  Fallbacks.
-  */
-
-  if (nightly == null) {
-    nightly = number(
-      property?.extracted_price ??
-      property?.price_per_night ??
+  nightly =
+    number(
+      rate?.extracted_lowest ??
+      rate?.extracted_price ??
+      rate?.lowest ??
+      rate?.price ??
       null
     );
-  }
 
-  if (total == null) {
-    total = number(
-      property?.extracted_total ??
-      property?.total_price ??
-      property?.total ??
+  total =
+    number(
+      totalRate?.extracted_lowest ??
+      totalRate?.extracted_total ??
+      totalRate?.lowest ??
+      totalRate?.total ??
       null
     );
-  }
-
-  /*
-  Provider-level fallback.
-  */
 
   if (
-    Array.isArray(property?.prices)
+    nightly == null
   ) {
-    for (const provider of property.prices) {
-      if (nightly == null) {
-        nightly = number(
-          provider?.rate_per_night
-        );
+    nightly =
+      number(
+        property?.extracted_price ??
+        property?.price_per_night ??
+        property?.nightly_price ??
+        property?.price ??
+        null
+      );
+  }
+
+  if (
+    total == null
+  ) {
+    total =
+      number(
+        property?.extracted_total ??
+        property?.total_price ??
+        property?.total ??
+        null
+      );
+  }
+
+  /*
+    Provider fallback.
+  */
+  if (
+    Array.isArray(
+      property?.prices
+    )
+  ) {
+    for (
+      const provider of
+      property.prices
+    ) {
+      if (
+        nightly == null
+      ) {
+        nightly =
+          number(
+            provider?.rate_per_night ??
+            provider?.price_per_night ??
+            provider?.price
+          );
       }
 
-      if (total == null) {
-        total = number(
-          provider?.total_rate
-        );
+      if (
+        total == null
+      ) {
+        total =
+          number(
+            provider?.total_rate ??
+            provider?.total_price ??
+            provider?.total
+          );
       }
 
       if (
@@ -410,28 +621,20 @@ function normalizePrice(property, nights) {
     }
   }
 
-  /*
-  If only nightly price exists,
-  calculate the stay total.
-  */
-
   if (
     total == null &&
     nightly != null
   ) {
-    total = nightly * nights;
+    total =
+      nightly * nights;
   }
-
-  /*
-  If only total exists,
-  calculate nightly price.
-  */
 
   if (
     nightly == null &&
     total != null
   ) {
-    nightly = total / nights;
+    nightly =
+      total / nights;
   }
 
   return {
@@ -443,7 +646,7 @@ function normalizePrice(property, nights) {
 }
 
 /* ---------------------------------------------------------
-   NORMALIZE HOTEL
+NORMALIZE PROPERTY
 --------------------------------------------------------- */
 
 function normalizeProperty(
@@ -469,11 +672,9 @@ function normalizeProperty(
     {};
 
   const address =
-    cleanText(
-      property?.address ||
-      property?.location ||
-      ""
-    ) || null;
+    buildAddress(
+      property
+    );
 
   const name =
     cleanText(
@@ -484,14 +685,19 @@ function normalizeProperty(
     "Unnamed hotel";
 
   const images =
-    normalizeImages(property);
+    normalizeImages(
+      property
+    );
 
   const bookingUrl =
-    normalizeBookingUrl(property);
+    normalizeBookingUrl(
+      property
+    );
 
-  const hotelClass =
+  let hotelClass =
     property?.extracted_hotel_class ??
-    number(property?.hotel_class) ??
+    property?.hotel_class ??
+    property?.star_rating ??
     property?.stars ??
     null;
 
@@ -500,13 +706,19 @@ function normalizeProperty(
 
   if (
     stars == null &&
-    typeof hotelClass === "string"
+    typeof hotelClass ===
+      "string"
   ) {
     const match =
-      hotelClass.match(/([1-5])/);
+      hotelClass.match(
+        /([1-5])/
+      );
 
     if (match) {
-      stars = Number(match[1]);
+      stars =
+        Number(
+          match[1]
+        );
     }
   }
 
@@ -514,6 +726,7 @@ function normalizeProperty(
     number(
       property?.overall_rating ??
       property?.rating ??
+      property?.rating_value ??
       null
     );
 
@@ -521,8 +734,27 @@ function normalizeProperty(
     number(
       property?.reviews ??
       property?.review_count ??
+      property?.ratings_count ??
       null
     );
+
+  const brand =
+    cleanText(
+      property?.brand ||
+      property?.brand_name ||
+      property?.chain ||
+      property?.chain_name ||
+      ""
+    ) || null;
+
+  const chain =
+    cleanText(
+      property?.chain ||
+      property?.chain_name ||
+      property?.brand ||
+      property?.brand_name ||
+      ""
+    ) || null;
 
   return {
     hotel_id:
@@ -533,34 +765,33 @@ function normalizeProperty(
 
     name,
 
-    brand:
-      cleanText(
-        property?.brand ||
-        property?.brand_name ||
-        property?.chain ||
-        ""
-      ) || null,
-
+    brand,
     brand_name:
       cleanText(
         property?.brand_name ||
-        property?.brand ||
+        brand ||
         ""
       ) || null,
 
-    chain:
-      cleanText(
-        property?.chain ||
-        property?.chain_name ||
-        property?.brand ||
-        property?.brand_name ||
-        ""
-      ) || null,
-
+    chain,
     chain_name:
       cleanText(
         property?.chain_name ||
-        property?.chain ||
+        chain ||
+        ""
+      ) || null,
+
+    hotel_brand:
+      cleanText(
+        property?.hotel_brand ||
+        brand ||
+        ""
+      ) || null,
+
+    property_brand:
+      cleanText(
+        property?.property_brand ||
+        brand ||
         ""
       ) || null,
 
@@ -568,12 +799,20 @@ function normalizeProperty(
       address,
 
       latitude:
-        number(gps?.latitude) ??
-        number(property?.latitude),
+        number(
+          gps?.latitude
+        ) ??
+        number(
+          property?.latitude
+        ),
 
       longitude:
-        number(gps?.longitude) ??
-        number(property?.longitude)
+        number(
+          gps?.longitude
+        ) ??
+        number(
+          property?.longitude
+        )
     },
 
     price,
@@ -586,7 +825,9 @@ function normalizeProperty(
     stars,
 
     amenities:
-      normalizeAmenities(property),
+      normalizeAmenities(
+        property
+      ),
 
     images,
 
@@ -597,8 +838,12 @@ function normalizeProperty(
       bookingUrl,
 
     hotel_url:
-      property?.link ||
       property?.hotel_url ||
+      null,
+
+    url:
+      property?.link ||
+      property?.url ||
       null,
 
     description:
@@ -625,62 +870,103 @@ function normalizeProperty(
 }
 
 /* ---------------------------------------------------------
-   DEDUPE
+DEDUPLICATION
 --------------------------------------------------------- */
 
-function dedupeHotels(hotels) {
-  const seen = new Map();
+function dedupeHotels(
+  hotels
+) {
+  const seen =
+    new Map();
 
-  const score = (hotel) => {
-    let value = 0;
+  const score =
+    hotel => {
+      let value = 0;
 
-    if (
-      hotel.price?.total_price != null
-    ) value += 5;
+      if (
+        hotel.price?.total_price !=
+        null
+      ) {
+        value += 5;
+      }
 
-    if (
-      hotel.price?.price_per_night != null
-    ) value += 3;
+      if (
+        hotel.price?.price_per_night !=
+        null
+      ) {
+        value += 3;
+      }
 
-    if (
-      hotel.images?.length
-    ) value += 3;
+      if (
+        hotel.images?.length
+      ) {
+        value += 3;
+      }
 
-    if (
-      hotel.location?.address
-    ) value += 2;
+      if (
+        hotel.location?.address
+      ) {
+        value += 2;
+      }
 
-    if (
-      hotel.rating?.value != null
-    ) value += 2;
+      if (
+        hotel.rating?.value !=
+        null
+      ) {
+        value += 2;
+      }
 
-    if (
-      hotel.amenities?.length
-    ) value += 1;
+      if (
+        hotel.amenities?.length
+      ) {
+        value += 1;
+      }
 
-    if (
-      hotel.booking_url
-    ) value += 1;
+      if (
+        hotel.booking_url
+      ) {
+        value += 1;
+      }
 
-    return value;
-  };
+      return value;
+    };
 
-  for (const hotel of hotels) {
-    const key =
+  for (
+    const hotel of hotels
+  ) {
+    const id =
       String(
         hotel.hotel_id ||
-        `${hotel.name}|${hotel.location?.address || ""}`
+        ""
       )
         .toLowerCase()
         .trim();
 
-    if (!key) continue;
+    const fallback =
+      `${cleanText(
+        hotel.name
+      )}|${cleanText(
+        hotel.location?.address ||
+        ""
+      )}`
+        .toLowerCase()
+        .trim();
+
+    const key =
+      id || fallback;
+
+    if (!key) {
+      continue;
+    }
 
     const existing =
       seen.get(key);
 
     if (!existing) {
-      seen.set(key, hotel);
+      seen.set(
+        key,
+        hotel
+      );
       continue;
     }
 
@@ -688,15 +974,20 @@ function dedupeHotels(hotels) {
       score(hotel) >
       score(existing)
     ) {
-      seen.set(key, hotel);
+      seen.set(
+        key,
+        hotel
+      );
     }
   }
 
-  return [...seen.values()];
+  return [
+    ...seen.values()
+  ];
 }
 
 /* ---------------------------------------------------------
-   SERPAPI
+SERPAPI REQUEST
 --------------------------------------------------------- */
 
 async function fetchSerpApi(
@@ -704,7 +995,9 @@ async function fetchSerpApi(
   apiKey
 ) {
   const url =
-    new URL(SERPAPI_URL);
+    new URL(
+      SERPAPI_URL
+    );
 
   url.searchParams.set(
     "engine",
@@ -717,8 +1010,12 @@ async function fetchSerpApi(
   );
 
   for (
-    const [key, value]
-    of Object.entries(params)
+    const [
+      key,
+      value
+    ] of Object.entries(
+      params
+    )
   ) {
     if (
       value !== undefined &&
@@ -775,10 +1072,12 @@ async function fetchSerpApi(
 }
 
 /* ---------------------------------------------------------
-   MAIN
+MAIN CLOUDFLARE FUNCTION
 --------------------------------------------------------- */
 
-export async function onRequest(context) {
+export async function onRequest(
+  context
+) {
   const {
     request,
     env,
@@ -835,13 +1134,6 @@ export async function onRequest(context) {
       incoming.searchParams
         .get("adults") || 2
     );
-
-  /*
-  Default = 3 pages.
-  Approx. 60 results if available.
-
-  Maximum = 5 pages.
-  */
 
   const requestedPages =
     Number(
@@ -916,7 +1208,7 @@ export async function onRequest(context) {
   }
 
   /* -------------------------------------------------------
-     CACHE
+  CACHE
   ------------------------------------------------------- */
 
   const cache =
@@ -949,7 +1241,7 @@ export async function onRequest(context) {
     return new Response(
       cached.body,
       {
-        status: 200,
+        status: cached.status,
         headers:
           corsHeaders()
       }
@@ -957,16 +1249,18 @@ export async function onRequest(context) {
   }
 
   /* -------------------------------------------------------
-     FETCH MULTIPLE PAGES
+  FETCH MULTIPLE PAGES
   ------------------------------------------------------- */
 
   try {
-    const allProperties = [];
+    const allProperties =
+      [];
 
     let nextPageToken =
       null;
 
-    let pagesFetched = 0;
+    let pagesFetched =
+      0;
 
     for (
       let page = 1;
@@ -1010,6 +1304,10 @@ export async function onRequest(context) {
 
       pagesFetched++;
 
+      /*
+        Main Google Hotels
+        property array.
+      */
       if (
         Array.isArray(
           data?.properties
@@ -1017,6 +1315,19 @@ export async function onRequest(context) {
       ) {
         allProperties.push(
           ...data.properties
+        );
+      }
+
+      /*
+        Fallback.
+      */
+      if (
+        Array.isArray(
+          data?.hotels
+        )
+      ) {
+        allProperties.push(
+          ...data.hotels
         );
       }
 
