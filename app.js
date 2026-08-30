@@ -310,7 +310,7 @@ function normalizeHotel(hotel) {
    * We never treat `current` as the whole stay.
    */
   const nightly =
-    toNumber(
+    number(
       price.price_per_night ??
       price.current ??
       price.nightly ??
@@ -318,7 +318,7 @@ function normalizeHotel(hotel) {
     );
 
   const suppliedTotal =
-    toNumber(
+    number(
       price.total_price ??
       price.total ??
       null
@@ -374,7 +374,7 @@ function normalizeHotel(hotel) {
     image,
 
     rating:
-      toNumber(
+      number(
         rating?.value ??
         hotel?.rating_value ??
         hotel?.score ??
@@ -382,7 +382,7 @@ function normalizeHotel(hotel) {
       ),
 
     reviewCount:
-      toNumber(
+      number(
         rating?.votes ??
         hotel?.review_count ??
         hotel?.reviews ??
@@ -390,7 +390,7 @@ function normalizeHotel(hotel) {
       ),
 
     stars:
-      toNumber(
+      number(
         hotel?.stars ??
         hotel?.hotel_class ??
         null
