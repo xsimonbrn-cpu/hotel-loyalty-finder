@@ -1,70 +1,240 @@
 const API_URL="/api/hotels";
-const STORAGE="smbHotelLoyalty.v4";
-const PROGRAMS={
- "Hilton Honors":["Member","Silver","Gold","Diamond","Diamond Reserve"],"Marriott Bonvoy":["Member","Silver Elite","Gold Elite","Platinum Elite","Titanium Elite"],"IHG One Rewards":["Club Member","Silver Elite","Gold Elite","Platinum Elite","Diamond Elite"],"ALL - Accor Live Limitless":["Classic","Silver","Gold","Platinum","Diamond"],"Radisson Rewards":["Club","Premium","VIP"],"MeliáRewards":["White","Silver","Gold","Platinum"],"GHA DISCOVERY":["Silver","Gold","Platinum","Titanium"],"Wyndham Rewards":["Blue","Gold","Platinum","Diamond"],"WorldHotels Rewards":["Red","Gold","Platinum","Diamond","Diamond Select"],"Best Western Rewards":["Blue","Gold","Platinum","Diamond","Diamond Select"]
-};
-const ALIASES=[
- ["waldorf astoria","Hilton","Waldorf Astoria","Hilton Honors"],["conrad","Hilton","Conrad","Hilton Honors"],["doubletree","Hilton","DoubleTree","Hilton Honors"],["hilton garden inn","Hilton","Hilton Garden Inn","Hilton Honors"],["hampton","Hilton","Hampton","Hilton Honors"],["embassy suites","Hilton","Embassy Suites","Hilton Honors"],["canopy","Hilton","Canopy","Hilton Honors"],["curio","Hilton","Curio","Hilton Honors"],["tapestry","Hilton","Tapestry","Hilton Honors"],["homewood suites","Hilton","Homewood Suites","Hilton Honors"],["home2 suites","Hilton","Home2 Suites","Hilton Honors"],["hilton","Hilton","Hilton","Hilton Honors"],
- ["ritz carlton","Marriott","The Ritz-Carlton","Marriott Bonvoy"],["st regis","Marriott","St. Regis","Marriott Bonvoy"],["jw marriott","Marriott","JW Marriott","Marriott Bonvoy"],["w hotels","Marriott","W Hotels","Marriott Bonvoy"],["edition","Marriott","EDITION","Marriott Bonvoy"],["sheraton","Marriott","Sheraton","Marriott Bonvoy"],["westin","Marriott","Westin","Marriott Bonvoy"],["renaissance","Marriott","Renaissance","Marriott Bonvoy"],["le meridien","Marriott","Le Méridien","Marriott Bonvoy"],["autograph collection","Marriott","Autograph Collection","Marriott Bonvoy"],["tribute portfolio","Marriott","Tribute Portfolio","Marriott Bonvoy"],["courtyard","Marriott","Courtyard","Marriott Bonvoy"],["four points","Marriott","Four Points","Marriott Bonvoy"],["moxy","Marriott","Moxy","Marriott Bonvoy"],["aloft","Marriott","Aloft","Marriott Bonvoy"],["ac hotel","Marriott","AC Hotels","Marriott Bonvoy"],["marriott","Marriott","Marriott Hotels","Marriott Bonvoy"],
- ["intercontinental","IHG","InterContinental","IHG One Rewards"],["six senses","IHG","Six Senses","IHG One Rewards"],["regent","IHG","Regent","IHG One Rewards"],["kimpton","IHG","Kimpton","IHG One Rewards"],["vignette collection","IHG","Vignette Collection","IHG One Rewards"],["hotel indigo","IHG","Hotel Indigo","IHG One Rewards"],["crowne plaza","IHG","Crowne Plaza","IHG One Rewards"],["holiday inn express","IHG","Holiday Inn Express","IHG One Rewards"],["holiday inn","IHG","Holiday Inn","IHG One Rewards"],["voco","IHG","voco","IHG One Rewards"],
- ["raffles","Accor","Raffles","ALL - Accor Live Limitless"],["fairmont","Accor","Fairmont","ALL - Accor Live Limitless"],["sofitel","Accor","Sofitel","ALL - Accor Live Limitless"],["mgallery","Accor","MGallery","ALL - Accor Live Limitless"],["pullman","Accor","Pullman","ALL - Accor Live Limitless"],["swissotel","Accor","Swissôtel","ALL - Accor Live Limitless"],["movenpick","Accor","Mövenpick","ALL - Accor Live Limitless"],["grand mercure","Accor","Grand Mercure","ALL - Accor Live Limitless"],["novotel","Accor","Novotel","ALL - Accor Live Limitless"],["mercure","Accor","Mercure","ALL - Accor Live Limitless"],["adagio","Accor","Adagio","ALL - Accor Live Limitless"],["25hours","Accor","25hours","ALL - Accor Live Limitless"],["mondrian","Accor","Mondrian","ALL - Accor Live Limitless"],["the hoxton","Accor","The Hoxton","ALL - Accor Live Limitless"],["ibis","Accor","ibis","ALL - Accor Live Limitless"],
- ["radisson collection","Radisson","Radisson Collection","Radisson Rewards"],["radisson blu","Radisson","Radisson Blu","Radisson Rewards"],["radisson red","Radisson","Radisson RED","Radisson Rewards"],["park plaza","Radisson","Park Plaza","Radisson Rewards"],["park inn","Radisson","Park Inn by Radisson","Radisson Rewards"],["radisson","Radisson","Radisson","Radisson Rewards"],
- ["gran melia","Meliá","Gran Meliá","MeliáRewards"],["me by melia","Meliá","ME by Meliá","MeliáRewards"],["innside","Meliá","INNSiDE","MeliáRewards"],["zel","Meliá","Zel","MeliáRewards"],["paradisus","Meliá","Paradisus","MeliáRewards"],["melia","Meliá","Meliá","MeliáRewards"],
- ["kempinski","GHA","Kempinski","GHA DISCOVERY"],["nh collection","GHA","NH Collection","GHA DISCOVERY"],["nh hotels","GHA","NH Hotels","GHA DISCOVERY"],["anantara","GHA","Anantara","GHA DISCOVERY"],["capella","GHA","Capella","GHA DISCOVERY"],["tivoli","GHA","Tivoli","GHA DISCOVERY"],["avani","GHA","Avani","GHA DISCOVERY"],["viceroy","GHA","Viceroy","GHA DISCOVERY"],
- ["wyndham grand","Wyndham","Wyndham Grand","Wyndham Rewards"],["wyndham","Wyndham","Wyndham","Wyndham Rewards"],["ramada encore","Wyndham","Ramada Encore","Wyndham Rewards"],["ramada","Wyndham","Ramada","Wyndham Rewards"],["days inn","Wyndham","Days Inn","Wyndham Rewards"],["super 8","Wyndham","Super 8","Wyndham Rewards"],["la quinta","Wyndham","La Quinta","Wyndham Rewards"],["worldhotels","WorldHotels","WorldHotels","WorldHotels Rewards"],["best western premier","Best Western","Best Western Premier","Best Western Rewards"],["best western plus","Best Western","Best Western Plus","Best Western Rewards"],["best western","Best Western","Best Western","Best Western Rewards"]
-];
+const STATUS={"Hilton Honors":"Gold","Marriott Bonvoy":"Platinum Elite","IHG One Rewards":"Club Member","ALL - Accor Live Limitless":"Silver","Radisson Rewards":"Premium","MeliáRewards":"Gold","GHA DISCOVERY":"Gold","Wyndham Rewards":"Gold","WorldHotels Rewards":"Gold","Best Western Rewards":"Gold"};
 const BENEFITS={
- "Hilton Honors":{Member:["Member rate"],Silver:["20% bonus points","5th night free"],Gold:["FREE breakfast","Room upgrade","5th night free"],Diamond:["FREE breakfast","Executive lounge","Room upgrade"],"Diamond Reserve":["FREE breakfast","Executive lounge","Room upgrade"]},
- "Marriott Bonvoy":{Member:["Member rate"],"Silver Elite":["Late check-out"],"Gold Elite":["Room upgrade","Late check-out"],"Platinum Elite":["Lounge access","Room upgrade","4pm late check-out","Welcome gift"],"Titanium Elite":["Lounge access","Room upgrade","4pm late check-out","Welcome gift"]},
- "IHG One Rewards":{"Club Member":["Member rate"],"Silver Elite":["Member rate"],"Gold Elite":["Member rate"],"Platinum Elite":["Room upgrade","Late check-out"],"Diamond Elite":["FREE breakfast","Room upgrade","Late check-out"]},
- "ALL - Accor Live Limitless":{Classic:["Member rate"],Silver:["Late check-out"],Gold:["Room upgrade","Early / late check-out"],Platinum:["Lounge access","Suite night upgrade","Room upgrade","Early / late check-out"],Diamond:["FREE weekend breakfast","Lounge access","Room upgrade","Early / late check-out"]},
- "Radisson Rewards":{Club:["Member rate"],Premium:["Room upgrade","Early / late check-out"],VIP:["FREE breakfast","Room upgrade","Early / late check-out"]},
- "MeliáRewards":{White:["Member rate"],Silver:["Room upgrade","Late check-out"],Gold:["Room upgrade","Early / late check-out"],Platinum:["Room upgrade","Early / late check-out"]},
- "GHA DISCOVERY":{Silver:["Local offers"],Gold:["Local offers"],Platinum:["Room upgrade","3pm late check-out"],Titanium:["Room upgrade","Early / late check-out","Welcome amenity"]},
- "Wyndham Rewards":{Blue:["Member rate"],Gold:["Early / late check-out"],Platinum:["Early / late check-out"],Diamond:["Suite upgrade","Early / late check-out"]},
- "WorldHotels Rewards":{Red:["Member rate"],Gold:["Upgrade","Early / late check-out","Welcome amenity"],Platinum:["Upgrade","Early / late check-out","Welcome amenity"],Diamond:["Lounge access","Upgrade","Welcome amenity"],"Diamond Select":["FREE breakfast","Lounge access","Upgrade","Welcome amenity"]},
- "Best Western Rewards":{Blue:["Member rate"],Gold:["Welcome amenity"],Platinum:["Early / late check-out","Welcome amenity"],Diamond:["Early / late check-out","Welcome amenity"],"Diamond Select":["Early / late check-out","Welcome amenity"]}
+  "Hilton Honors":{"Gold":["Free breakfast / F&B credit","Room upgrade subject to availability"]},
+  "Marriott Bonvoy":{"Platinum Elite":["Lounge access at participating brands","Room upgrade including selected suites","4pm late check-out","Welcome gift"]},
+  "IHG One Rewards":{"Club Member":[]},
+  "ALL - Accor Live Limitless":{"Silver":["Late check-out subject to availability","Welcome drink"]},
+  "Radisson Rewards":{"Premium":["Room upgrade subject to availability","Early check-in subject to availability","Late check-out subject to availability"]},
+  "MeliáRewards":{"Gold":["Room upgrade subject to availability","Early check-in subject to availability","Late check-out subject to availability"]},
+  "GHA DISCOVERY":{"Gold":["Member benefits","Local Offers"]},
+  "Wyndham Rewards":{"Gold":["Early check-in subject to availability","Late check-out subject to availability","Preferred room subject to availability"]},
+  "WorldHotels Rewards":{"Gold":["Early check-in / late check-out subject to availability","Upgrade subject to availability","Welcome amenity"]},
+  "Best Western Rewards":{"Gold":["Welcome amenity","Member Rate"]}
 };
-const AMENITIES=["Pool","Spa","Sauna","Fitness","Breakfast","Parking","Restaurant","Bar"];
-const DEFAULT_STATUS={"Hilton Honors":"Gold","Marriott Bonvoy":"Platinum Elite","IHG One Rewards":"Club Member","ALL - Accor Live Limitless":"Silver","Radisson Rewards":"Premium","MeliáRewards":"Gold","GHA DISCOVERY":"Gold","Wyndham Rewards":"Gold","WorldHotels Rewards":"Gold","Best Western Rewards":"Gold"};
-const ICONS={Pool:`<svg viewBox="0 0 24 24"><path d="M3 15c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2 2 2 3 2"/><path d="M7 11c1.8-1.2 2.2-3.2 2.2-5.5h4.1c0 2.3.4 4.3 2.2 5.5"/></svg>`,Spa:`<svg viewBox="0 0 24 24"><path d="M5 19c1.5-4 4.2-6 7-6s5.5 2 7 6"/><path d="M8 10c0-2.5 1.5-4 4-4s4 1.5 4 4"/></svg>`,Sauna:`<svg viewBox="0 0 24 24"><path d="M5 20V8h14v12"/><path d="M9 12c2-2 2 3 4 1s2-3 4-1"/><path d="M8 5c-1-1.3 1-1.7 0-3"/></svg>`,Fitness:`<svg viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></svg>`,Breakfast:`<svg viewBox="0 0 24 24"><path d="M5 12h12a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3Z"/><path d="M17 13h1a2 2 0 0 0 0-4h-1M8 18h9"/></svg>`,Parking:`<svg viewBox="0 0 24 24"><path d="M7 20V4h6a4 4 0 0 1 0 8H7"/></svg>`,Restaurant:`<svg viewBox="0 0 24 24"><path d="M6 3v8M9 3v8M6 7h3M7.5 11v10M17 3v18M17 3c3 2 3 7 0 8"/></svg>`,Bar:`<svg viewBox="0 0 24 24"><path d="M5 5h14l-5 7v6M10 21h8M12 18h3"/></svg>`};
-const defaultData={account:null,status:{...DEFAULT_STATUS},points:Object.fromEntries(Object.keys(PROGRAMS).map(k=>[k,0])),offers:[{name:"WorldHotels",spend:250,credit:50}],favorites:[],favoriteRecords:[],compare:[],compareRecords:[],defaults:{},filters:{programs:[],amenities:[],stars:0,radius:100,onlyBenefits:false,onlyOffers:false},sort:"effective"};
-let data=loadData(); let hotels=[]; let searchPerformed=false; let page=1; const perPage=20; let map=null; let markers=[]; let searchCentre=null; let favoritesMode=false;
+
+const state={
+  hotels:[],filtered:[],page:1,perPage:20,
+  programs:new Set(),amenities:new Set(),minStars:0,
+  onlyBenefits:false,onlyOffers:false,loading:false,
+  favorites:new Set(JSON.parse(localStorage.getItem("smb-favorites")||"[]")),
+  compare:new Set(JSON.parse(localStorage.getItem("smb-compare")||"[]")),
+  map:null,markers:[],mapReady:false
+};
 const $=id=>document.getElementById(id);
-function loadData(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||"{}");return {...defaultData,...raw,filters:{...defaultData.filters,...(raw.filters||{})}}}catch{return structuredClone(defaultData)}}
-function saveData(){localStorage.setItem(STORAGE,JSON.stringify(data));updateCounts()}
-function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-function norm(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9]+/g," ").trim()}
-function nights(){const a=new Date(`${$("checkIn").value}T00:00:00`),b=new Date(`${$("checkOut").value}T00:00:00`);return Math.max(1,Math.round((b-a)/86400000))}
-function localDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function setDates(){const now=new Date(),tom=new Date(now);tom.setDate(now.getDate()+1);if(!$("checkIn").value)$("checkIn").value=localDate(now);if(!$("checkOut").value)$("checkOut").value=localDate(tom)}
-function classify(h){const text=norm(`${h.name} ${h.brand||""} ${h.chain||""}`);for(const [needle,chain,brand,program] of ALIASES){if(text.includes(norm(needle)))return{chain,brand,program}}return{chain:h.chain||"Other",brand:h.brand||"Independent",program:null}}
-function canonicalAmenities(h){return Array.isArray(h.amenities)?h.amenities:[]}
-function benefitScore(h){const b=(h.benefits||[]).join(" ");let s=0;if(/free breakfast/i.test(b))s+=100;if(/lounge/i.test(b))s+=80;if(/early|late|check out|check-in/i.test(b))s+=60;if(/upgrade/i.test(b))s+=40;if(/welcome|gift|amenity/i.test(b))s+=25;return s}
-function enrich(h){const cls=classify(h),n=nights(),address=h?.location?.address||h?.address||null,total=Number(h?.price?.total_price??0)||0,nightly=Number(h?.price?.price_per_night??(total/n))||0,program=cls.program,status=program?(data.status[program]||"Member"):"—",benefits=BENEFITS[program]?.[status]||[],points=program?Number(data.points[program]||0):0;const promo=program==="MeliáRewards"?.2:0;let amex=null;if(data.offers?.length){const hay=norm(`${h.name} ${program||""} ${cls.brand||""}`);amex=data.offers.filter(o=>o.name&&hay.includes(norm(o.name))).sort((a,b)=>Number(b.credit||0)-Number(a.credit||0))[0]||null}const discounted=total*(1-promo),amexCredit=amex&&discounted>=Number(amex.spend||0)?Number(amex.credit||0):0;const effective=Math.max(0,discounted-amexCredit);return {...h,...cls,address,status,benefits,points,total,nightly,promotion:promo,amex,amexTriggered:Boolean(amexCredit),amexCredit,effective,effectiveNightly:effective/n,amenities:canonicalAmenities(h),isFavorite:data.favorites.includes(h.id),inCompare:data.compare.includes(h.id),latitude:Number(h.latitude??h.location?.latitude),longitude:Number(h.longitude??h.location?.longitude)}}
-function distanceFromCentre(h){if(!searchCentre||!Number.isFinite(h.latitude)||!Number.isFinite(h.longitude))return null;const R=6371,dLat=(h.latitude-searchCentre.lat)*Math.PI/180,dLon=(h.longitude-searchCentre.lng)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(searchCentre.lat*Math.PI/180)*Math.cos(h.latitude*Math.PI/180)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(a))}
-function applyFilters(source=hotels.map(enrich)){let out=source.slice(),f=data.filters;if(f.programs.length)out=out.filter(h=>h.program&&f.programs.includes(h.program));if(f.stars===5)out=out.filter(h=>Number(h.stars)===5);else if(f.stars)out=out.filter(h=>Number(h.stars)>=f.stars);if(f.amenities.length)out=out.filter(h=>f.amenities.every(a=>h.amenities.includes(a)));if(f.onlyBenefits)out=out.filter(h=>benefitScore(h)>0);if(f.onlyOffers)out=out.filter(h=>h.amexTriggered||h.promotion>0);if(f.radius<100)out=out.filter(h=>{const d=distanceFromCentre(h);return d==null||d<=f.radius});out.sort((a,b)=>data.sort==="benefits"?benefitScore(b)-benefitScore(a):data.sort==="rating"?(b.rating?.value||0)-(a.rating?.value||0):data.sort==="price"?a.effective-b.effective:data.sort==="distance"?(distanceFromCentre(a)??99999)-(distanceFromCentre(b)??99999):a.effective-b.effective);return out}
-function updateCounts(){if($("compareCount"))$("compareCount").textContent=data.compare.length;if($("favoriteCount"))$("favoriteCount").textContent=data.favorites.length;const f=data.filters,n=f.programs.length+f.amenities.length+(f.stars?1:0)+(f.radius<100?1:0)+Number(f.onlyBenefits)+Number(f.onlyOffers);$("activeFilterCount").textContent=n?`${n} active`:"0"}
-function renderPrograms(){const c=$("programFilters");c.innerHTML=Object.keys(PROGRAMS).map(p=>`<label class="program-filter"><input type="checkbox" data-program="${esc(p)}" ${data.filters.programs.includes(p)?"checked":""}><span>${esc(p)}</span></label>`).join("");c.querySelectorAll("input").forEach(i=>i.onchange=()=>{const p=i.dataset.program;if(i.checked&&!data.filters.programs.includes(p))data.filters.programs.push(p);if(!i.checked)data.filters.programs=data.filters.programs.filter(x=>x!==p);saveData()})}
-function renderAmenities(){const c=$("amenityFilters");c.innerHTML=AMENITIES.map(a=>`<label class="amenity-filter"><input type="checkbox" data-amenity="${a}" ${data.filters.amenities.includes(a)?"checked":""}><span class="amenity-icon">${ICONS[a]}</span><span>${a}</span></label>`).join("");c.querySelectorAll("input").forEach(i=>i.onchange=()=>{const a=i.dataset.amenity;if(i.checked&&!data.filters.amenities.includes(a))data.filters.amenities.push(a);if(!i.checked)data.filters.amenities=data.filters.amenities.filter(x=>x!==a);saveData()})}
-function starDisplay(stars){const s=Number(stars);if(!(s>=1&&s<=5))return '<span class="hotel-stars unknown">—</span>';return '<span class="hotel-stars" aria-label="'+s+' star hotel">'+'★'.repeat(s)+'</span>'}
-function card(h){const rating=h.rating?.value!=null?`<span>Rating ${Number(h.rating.value).toFixed(1)}${h.rating.votes?` · ${Number(h.rating.votes).toLocaleString()} reviews`:""}</span>`:"";const d=distanceFromCentre(h),img=h.images?.[0]||h.thumbnail||"",benefits=(h.benefits||[]).filter(x=>!/member rate|points|wifi/i.test(x)).sort((a,b)=>benefitScore({...h,benefits:[b]})-benefitScore({...h,benefits:[a]})).slice(0,6),amen=(h.amenities||[]);return `<article class="hotel"><div class="hotel-image-wrap">${img?`<img class="hotel-image" src="${esc(img)}" alt="${esc(h.name)}" loading="lazy">`:`<div class="hotel-image hotel-image-empty"></div>`}<button class="favorite-button ${h.isFavorite?"selected":""}" data-fav="${esc(h.id)}" aria-label="${h.isFavorite?"Remove favorite":"Add favorite"}">${h.isFavorite?"♥":"♡"}</button>${h.images?.length>1?`<span class="image-count">${h.images.length} photos</span>`:""}</div><div class="hotel-main"><div class="hotel-title-row"><div><h3 class="hotel-name">${esc(h.name)}</h3><p class="hotel-brand"><strong>${esc(h.brand||"Independent")}</strong>${h.program?` <span class="program-tag">${esc(h.program)}</span><span class="status-tag">${esc(h.status)}</span>`:` <span class="status-tag muted">No loyalty programme detected</span>`}</p></div></div><div class="hotel-meta">${starDisplay(h.stars)}${rating}${h.address?`<span>${esc(h.address)}</span>`:""}${d!=null?`<span>${d.toFixed(1)} km from search centre</span>`:""}</div>${amen.length?`<div class="amenities">${amen.map(a=>`<span class="amenity">${ICONS[a]||""}${a}</span>`).join("")}</div>`:""}${benefits.length?`<div class="benefits">${benefits.map(x=>`<span class="benefit ${/free breakfast|lounge|upgrade|early|late|welcome|gift/i.test(x)?"priority":""}">${esc(x)}</span>`).join("")}</div>`:""}${h.points?`<div class="points"><span class="points-dot"></span>${Number(h.points).toLocaleString()} points · ${esc(h.program||"")}</div>`:""}</div><div class="hotel-actions"><div><div class="price-source">${h.official_url?"Hotel website price/link":"Live Google Hotels price"}</div><div class="price">€${Math.round(h.effective)}</div><div class="price-night">€${Math.round(h.effectiveNightly)} / night</div><div class="price-detail">Original stay: €${Math.round(h.total)}${h.amexTriggered?`<br>Amex credit: −€${Math.round(h.amexCredit)}`:""}</div></div><div class="action-stack"><button class="${h.inCompare?"compare-selected":""}" data-compare="${esc(h.id)}">${h.inCompare?"✓ In compare":"Compare"}</button>${h.official_url?`<a href="${esc(h.official_url)}" target="_blank" rel="noopener noreferrer">Hotel website ↗</a>`:""}<button data-book="${esc(h.id)}">Booking options</button></div></div></article>`}
-function render(){const all=favoritesMode?data.favoriteRecords.map(enrich):applyFilters();const totalPages=Math.max(1,Math.ceil(all.length/perPage));if(page>totalPages)page=totalPages;const visible=all.slice((page-1)*perPage,page*perPage);$("resultTitle").textContent=favoritesMode?"Your favorites":`Hotels in ${$("city").value.trim()||"your destination"}`;$("resultMeta").textContent=searchPerformed?`${all.length} shown · ${hotels.length} live hotels · page ${page}/${totalPages} · ${nights()} night${nights()===1?"":"s"}`:favoritesMode?`${all.length} saved hotels`:"Search for live hotel prices";$("emptyState").style.display=visible.length?"none":"block";if(!visible.length&&favoritesMode){$("emptyState").querySelector("h3").textContent="No saved favorites";$("emptyState").querySelector("p").textContent="Add hotels to favorites and they will stay here."}else if(!visible.length&&searchPerformed){$("emptyState").querySelector("h3").textContent="No hotels match these filters";$("emptyState").querySelector("p").textContent="Try removing one filter or broaden the destination."}$("results").innerHTML=visible.map(card).join("");renderPagination(totalPages,all.length);renderMap(all);updateCounts()}
-function renderPagination(totalPages,total){const c=$("pagination");if(!total||totalPages<=1){c.innerHTML="";return}let html=`<span class="page-info">${(page-1)*perPage+1}–${Math.min(page*perPage,total)} of ${total}</span>`;const pages=[];for(let i=1;i<=totalPages;i++)if(totalPages<=9||i===1||i===totalPages||Math.abs(i-page)<=1)pages.push(i);const uniq=[];pages.forEach(n=>{if(!uniq.includes(n))uniq.push(n)});let last=0;for(const n of uniq){if(last&&n-last>1)html+=`<span class="page-gap">…</span>`;html+=`<button class="${n===page?"active":""}" data-page="${n}">${n}</button>`;last=n}if(page<totalPages)html+=`<button data-page="${page+1}">Next</button>`;c.innerHTML=html;c.querySelectorAll("button").forEach(b=>b.onclick=()=>{page=Number(b.dataset.page);render();window.scrollTo({top:$("results").offsetTop-90,behavior:"smooth"})})}
-function renderMap(all){if(!map)return;markers.forEach(m=>m.remove());markers=[];const coords=all.filter(h=>Number.isFinite(h.latitude)&&Number.isFinite(h.longitude));if(!coords.length)return;const bounds=[];coords.forEach(h=>{const marker=L.circleMarker([h.latitude,h.longitude],{radius:h.isFavorite?8:6,weight:h.isFavorite?3:1,fillOpacity:.85}).addTo(map).bindPopup(`<div class="map-popup"><strong>${esc(h.name)}</strong><div>${h.stars?`${h.stars}★ · `:""}€${Math.round(h.effectiveNightly)} / night</div><button data-compare="${esc(h.id)}">${h.inCompare?"Remove from compare":"Compare"}</button></div>`);markers.push(marker);bounds.push([h.latitude,h.longitude])});map.fitBounds(bounds,{padding:[35,35],maxZoom:13})}
-function openFilters(){$("filterDrawer").classList.add("open");$("filterDrawer").setAttribute("aria-hidden","false")};function closeFilters(){$("filterDrawer").classList.remove("open");$("filterDrawer").setAttribute("aria-hidden","true")}
-async function searchLive(){favoritesMode=false;const location=$("city").value.trim(),ci=$("checkIn").value,co=$("checkOut").value,guests=Number($("guests").value||2);if(!location||!ci||!co||co<=ci)return alert("Please enter a destination and valid dates.");$("searchButton").disabled=true;$("searchButton").textContent="Searching…";$("searchStatus").textContent="Loading a large live hotel result set…";try{const pms=new URLSearchParams({location,check_in:ci,check_out:co,adults:String(guests),currency:"EUR",pages:"20"});if(data.filters.programs.length===1)pms.set("program",data.filters.programs[0]);if(data.filters.stars)pms.set("stars",String(data.filters.stars));if(data.filters.amenities.length)pms.set("amenities",data.filters.amenities.join(","));const r=await fetch(`${API_URL}?${pms}`);const p=await r.json();if(!r.ok||p.error)throw new Error(p.details||p.error||"Search failed");hotels=(p.hotels||[]).map(h=>({...h,id:h.hotel_id||h.property_token||h.place_id||`${h.name}|${h.location?.address||""}`}));const coords=hotels.filter(h=>Number.isFinite(Number(h.location?.latitude))&&Number.isFinite(Number(h.location?.longitude)));searchCentre=coords.length?{lat:coords.reduce((s,h)=>s+Number(h.location.latitude),0)/coords.length,lng:coords.reduce((s,h)=>s+Number(h.location.longitude),0)/coords.length}:null;searchPerformed=true;page=1;$("searchStatus").textContent=`${hotels.length} live hotels loaded · ${p.pages_fetched||1} pages searched`;syncSavedRecords();render()}catch(e){console.error(e);alert(`Hotel search failed: ${e.message}`)}finally{$("searchButton").disabled=false;$("searchButton").textContent="Search"}}
-function syncSavedRecords(){const mapById=new Map(hotels.map(h=>[h.id,h]));data.favorites=data.favorites.filter(id=>data.favoriteRecords.some(h=>h.id===id));data.compare=data.compare.filter(id=>data.compareRecords.some(h=>h.id===id));data.favoriteRecords=data.favoriteRecords.map(h=>mapById.get(h.id)||h);data.compareRecords=data.compareRecords.map(h=>mapById.get(h.id)||h);saveData()}
-function toggleFavorite(id){const h=hotels.find(x=>x.id===id)||data.favoriteRecords.find(x=>x.id===id);if(!h)return;if(data.favorites.includes(id)){data.favorites=data.favorites.filter(x=>x!==id);data.favoriteRecords=data.favoriteRecords.filter(x=>x.id!==id)}else{data.favorites.push(id);data.favoriteRecords=[...data.favoriteRecords.filter(x=>x.id!==id),h]}saveData();render()}
-function toggleCompare(id){const h=hotels.find(x=>x.id===id)||data.compareRecords.find(x=>x.id===id);if(!h)return;if(data.compare.includes(id)){data.compare=data.compare.filter(x=>x!==id);data.compareRecords=data.compareRecords.filter(x=>x.id!==id)}else{if(data.compare.length>=3)return alert("Compare supports up to 3 hotels.");data.compare.push(id);data.compareRecords=[...data.compareRecords.filter(x=>x.id!==id),h]}saveData();render();if(data.compare.length>=2)openCompare()}
-function openCompare(){const selected=data.compareRecords.filter(h=>data.compare.includes(h.id)).map(enrich);if(!selected.length)return;$("compareDrawer").innerHTML=`<div class="modal"><div class="modal-head"><div><p class="eyebrow">SIDE BY SIDE</p><h2>Compare hotels</h2></div><button class="modal-close" data-close-modal="compareDrawer">×</button></div><div class="modal-body"><div class="compare-columns">${selected.map(h=>`<div class="compare-hotel"><img src="${esc(h.images?.[0]||h.thumbnail||"")}" alt=""><strong>${esc(h.name)}</strong><span>${starDisplay(h.stars)}</span><button class="remove-compare" data-remove-compare="${esc(h.id)}">Remove</button></div>`).join("")}</div><table class="compare-table"><tbody>${[["Effective / night",selected.map(h=>`€${Math.round(h.effectiveNightly)}`)],["Hotel category",selected.map(h=>h.stars?`${h.stars}★`:"—")],["Rating",selected.map(h=>h.rating?.value?Number(h.rating.value).toFixed(1):"—")],["Loyalty",selected.map(h=>h.program?`${h.program} · ${h.status}`:"None")],["Your points",selected.map(h=>h.points?Number(h.points).toLocaleString():"—")],["Meaningful benefits",selected.map(h=>(h.benefits||[]).filter(x=>!/member rate|points|wifi/i.test(x)).join(", ")||"—")],["Amenities",selected.map(h=>(h.amenities||[]).join(", ")||"—")],["Hotel website",selected.map(h=>h.official_url?`<a href="${esc(h.official_url)}" target="_blank" rel="noopener">Open ↗</a>`:"—")]].map(r=>`<tr><th>${r[0]}</th>${r[1].map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;$("compareDrawer").classList.remove("hidden")}
-async function openBooking(id){const h=hotels.find(x=>x.id===id)||data.favoriteRecords.find(x=>x.id===id)||data.compareRecords.find(x=>x.id===id);if(!h)return;const c=$("bookingModal");c.innerHTML=`<div class="modal small"><div class="modal-head"><div><p class="eyebrow">BOOKING</p><h2>${esc(h.name)}</h2></div><button class="modal-close" data-close-modal="bookingModal">×</button></div><div class="modal-body">${h.official_url?`<div class="booking-list"><a class="official-booking" href="${esc(h.official_url)}" target="_blank" rel="noopener noreferrer"><span>Official hotel website</span><span>↗</span></a></div>`:""}${h.booking_url&&h.booking_url!==h.official_url?`<div class="booking-list"><a href="${esc(h.booking_url)}" target="_blank" rel="noopener noreferrer"><span>Direct booking provider</span><span>↗</span></a></div>`:""}<p id="bookingLoading" class="booking-loading">Finding additional booking options…</p><div id="bookingLinks" class="booking-list"></div></div></div>`;c.classList.remove("hidden");try{const r=await fetch(`/api/links?${new URLSearchParams({hotel_name:h.name,location:$("city").value})}`);const d=await r.json();$("bookingLoading").style.display="none";const labels={booking_com:"Booking.com",expedia:"Expedia",hotels_com:"Hotels.com",agoda:"Agoda",tripadvisor:"Tripadvisor",kayak:"KAYAK",priceline:"Priceline",marriott:"Marriott",hilton:"Hilton",ihg:"IHG",official_website:"Official website"};const links=Object.entries(d.links||{}).filter(([,v])=>/^https?:\/\//i.test(v));$("bookingLinks").innerHTML=links.map(([k,v])=>`<a href="${esc(v)}" target="_blank" rel="noopener noreferrer"><span>${esc(labels[k]||k)}</span><span>↗</span></a>`).join("")||"<p class=\"booking-empty\">No additional provider links returned.</p>"}catch(e){$("bookingLoading").textContent="Additional provider links unavailable. The hotel website above remains available."}}
-function openFavorites(){favoritesMode=true;page=1;searchPerformed=true;render()}
-function loginView(){return `<div class="account-grid"><div class="account-section"><h3>Local account</h3><p class="account-copy">This version keeps your account on this device. A real multi-device database can be connected later without changing the app structure.</p><div class="form-stack"><label>Name<input id="accountName" placeholder="Your name"></label><label>Email<input id="accountEmail" type="email" placeholder="you@example.com"></label><button class="primary" id="createAccount">Create profile</button></div></div><div class="account-section"><h3>Saved with your profile</h3><p class="account-copy">Loyalty status, points, Amex offers, favourites, compare list, filters, sorting and search defaults.</p></div></div>`}
-function accountView(){return `<div class="account-grid"><div class="account-section"><h3>Profile</h3><div class="form-stack"><label>Name<input id="accountName" value="${esc(data.account.name)}"></label><label>Email<input id="accountEmail" value="${esc(data.account.email)}"></label><button class="primary" id="saveProfile">Save profile</button><button class="secondary" id="logout">Sign out</button></div></div><div class="account-section"><h3>Loyalty status & points</h3><div class="status-list">${Object.keys(PROGRAMS).map(p=>`<div class="status-row"><span>${esc(p)}</span><select data-status="${esc(p)}">${PROGRAMS[p].map(s=>`<option ${data.status[p]===s?"selected":""}>${esc(s)}</option>`).join("")}</select><input data-points="${esc(p)}" type="number" min="0" value="${Number(data.points[p]||0)}" placeholder="Points"></div>`).join("")}</div><button class="primary" id="saveLoyalty">Save loyalty profile</button></div></div>`}
-function openAccount(){const c=$("accountModal");c.innerHTML=`<div class="modal"><div class="modal-head"><div><p class="eyebrow">PERSONAL PROFILE</p><h2>${data.account?`Welcome, ${esc(data.account.name)}`:"Your S.M.B. profile"}</h2></div><button class="modal-close" data-close-modal="accountModal">×</button></div><div class="modal-body">${data.account?accountView():loginView()}</div></div>`;c.classList.remove("hidden")}
-function resetFilters(){data.filters={...defaultData.filters};$("radius").value=100;$("radiusValue").textContent=100;document.querySelectorAll(".star-filter").forEach(b=>b.classList.toggle("active",b.dataset.stars==="0"));renderPrograms();renderAmenities();saveData();render()}
-function wire(){document.addEventListener("click",e=>{const close=e.target.closest("[data-close-modal]");if(close)$(close.dataset.closeModal).classList.add("hidden");const fav=e.target.closest("[data-fav]");if(fav)toggleFavorite(fav.dataset.fav);const cmp=e.target.closest("[data-compare]");if(cmp)toggleCompare(cmp.dataset.compare);const rem=e.target.closest("[data-remove-compare]");if(rem)toggleCompare(rem.dataset.removeCompare);const book=e.target.closest("[data-book]");if(book)openBooking(book.dataset.book);const scroll=e.target.closest("[data-scroll]");if(scroll)$(scroll.dataset.scroll).scrollIntoView({behavior:"smooth"});if(e.target.id==="createAccount"){data.account={name:$("accountName").value.trim()||"Guest",email:$("accountEmail").value.trim()};saveData();openAccount()}if(e.target.id==="saveProfile"){data.account.name=$("accountName").value.trim();data.account.email=$("accountEmail").value.trim();saveData();openAccount()}if(e.target.id==="logout"){data.account=null;saveData();openAccount()}if(e.target.id==="saveLoyalty"){document.querySelectorAll("[data-status]").forEach(x=>data.status[x.dataset.status]=x.value);document.querySelectorAll("[data-points]").forEach(x=>data.points[x.dataset.points]=Number(x.value)||0);saveData();openAccount()}});$("searchButton").onclick=searchLive;$("openFilters").onclick=openFilters;$("closeFilters").onclick=closeFilters;$("applyFilters").onclick=()=>{closeFilters();page=1;render()};$("resetFilters").onclick=resetFilters;document.querySelectorAll(".star-filter").forEach(b=>b.onclick=()=>{data.filters.stars=Number(b.dataset.stars);document.querySelectorAll(".star-filter").forEach(x=>x.classList.toggle("active",x===b));saveData();if(searchPerformed){$("searchStatus").textContent="Refreshing for hotel category…";searchLive()}else render()});$("radius").oninput=e=>{$("radiusValue").textContent=e.target.value;data.filters.radius=Number(e.target.value);saveData();render()};$("onlyBenefits").onchange=e=>{data.filters.onlyBenefits=e.target.checked;saveData();render()};$("onlyOffers").onchange=e=>{data.filters.onlyOffers=e.target.checked;saveData();render()};$("sort").onchange=e=>{data.sort=e.target.value;saveData();render()};$("mapToggle").onclick=()=>{$("mapPanel").classList.toggle("open");setTimeout(()=>map?.invalidateSize(),80)};$("mapClose").onclick=()=>$("mapPanel").classList.remove("open");$("compareNav").onclick=openCompare;$("favoritesNav").onclick=openFavorites;$("accountNav").onclick=openAccount;$("saveDefaults").onclick=()=>{data.defaults={city:$("city").value,checkIn:$("checkIn").value,checkOut:$("checkOut").value,guests:$("guests").value};saveData();$("searchStatus").textContent="Search defaults saved."};["city","checkIn","checkOut","guests"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")searchLive()}));$("programFilters").addEventListener("change",()=>{if(searchPerformed){$("searchStatus").textContent="Refreshing search coverage…";searchLive()}});$("amenityFilters").addEventListener("change",()=>{if(searchPerformed){$("searchStatus").textContent="Refreshing for amenity coverage…";searchLive()}})}
-function initMap(){if(!window.L)return;map=L.map("map",{zoomControl:true,attributionControl:true}).setView([50.11,8.68],11);L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{maxZoom:20,attribution:"© OpenStreetMap © CARTO"}).addTo(map)}
-function init(){setDates();if(data.defaults.city)$("city").value=data.defaults.city;if(data.defaults.checkIn)$("checkIn").value=data.defaults.checkIn;if(data.defaults.checkOut)$("checkOut").value=data.defaults.checkOut;if(data.defaults.guests)$("guests").value=data.defaults.guests;renderPrograms();renderAmenities();$("radius").value=data.filters.radius;$("radiusValue").textContent=data.filters.radius;document.querySelectorAll(".star-filter").forEach(b=>b.classList.toggle("active",Number(b.dataset.stars)===Number(data.filters.stars)));$("onlyBenefits").checked=Boolean(data.filters.onlyBenefits);$("onlyOffers").checked=Boolean(data.filters.onlyOffers);$("sort").value=data.sort;initMap();wire();updateCounts();render()}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+
+function dates(){
+  const a=$("checkIn").value,b=$("checkOut").value;
+  return {a,b,n:Math.max(1,Math.round((new Date(`${b}T00:00:00`)-new Date(`${a}T00:00:00`))/86400000))}
+}
+function initDates(){
+  const d=new Date(),t=new Date(d);t.setDate(d.getDate()+1);
+  $("checkIn").value=d.toISOString().slice(0,10);
+  $("checkOut").value=t.toISOString().slice(0,10);
+}
+function save(){
+  localStorage.setItem("smb-favorites",JSON.stringify([...state.favorites]));
+  localStorage.setItem("smb-compare",JSON.stringify([...state.compare]));
+  $("favCount").textContent=state.favorites.size;
+  $("compareCount").textContent=state.compare.size;
+}
+function benefits(h){return BENEFITS[h.program]?.[STATUS[h.program]]||[]}
+function benefitScore(h){
+  const b=benefits(h).join(" ").toLowerCase();
+  let s=0;
+  if(/free breakfast|f&b credit/.test(b))s+=100;
+  if(/lounge/.test(b))s+=80;
+  if(/early check|late check/.test(b))s+=60;
+  if(/upgrade/.test(b))s+=50;
+  if(/welcome gift|welcome amenity/.test(b))s+=30;
+  return s;
+}
+function enrich(h){
+  const total=h.price?.total??null,night=h.price?.night??null;
+  const b=benefits(h);
+  return {...h,benefits:b,effective:total,effectiveNightly:night,
+    available:Boolean(h.price?.available&&((total??0)>0||(night??0)>0)),
+    benefitScore:benefitScore(h),
+    amenitySet:new Set((h.amenities||[]).map(x=>norm(x)))
+  };
+}
+function hasAmenity(h,a){
+  const set=h.amenitySet||new Set((h.amenities||[]).map(x=>norm(x)));
+  return set.has(norm(a));
+}
+function passes(h){
+  if(state.programs.size&&!state.programs.has(h.program))return false;
+  if(state.amenities.size&&!([...state.amenities].every(a=>hasAmenity(h,a))))return false;
+  if(state.minStars && !(Number(h.stars)>=state.minStars))return false;
+  if(state.onlyBenefits && !h.benefits.length)return false;
+  if(state.onlyOffers && !h.sponsored && !h.official_url)return false;
+  return true;
+}
+function applyFilters(resetPage=true){
+  const all=state.hotels.map(enrich);
+  state.filtered=all.filter(passes);
+  if(resetPage)state.page=1;
+  render();
+}
+function sorted(a){
+  const sort=$("sort").value;
+  const unavailable=(h)=>!h.available;
+  return [...a].sort((x,y)=>{
+    const end=Number(unavailable(x))-Number(unavailable(y));
+    if(end)return end;
+    if(sort==="effective")return (x.effective??Infinity)-(y.effective??Infinity);
+    if(sort==="value")return (y.benefitScore+(y.rating||0)*8)-(x.benefitScore+(x.rating||0)*8);
+    if(sort==="benefits")return y.benefitScore-x.benefitScore;
+    if(sort==="rating")return (y.rating??0)-(x.rating??0);
+    if(sort==="stars")return (y.stars??-1)-(x.stars??-1);
+    return 0;
+  });
+}
+function render(){
+  const a=sorted(state.filtered);
+  const pages=Math.max(1,Math.ceil(a.length/state.perPage));
+  state.page=Math.min(state.page,pages);
+  const slice=a.slice((state.page-1)*state.perPage,state.page*state.perPage);
+  $("resultMeta").textContent=state.loading?`Searching · ${state.hotels.length} hotels found…`:`${a.length} hotels · page ${state.page} of ${pages}`;
+  $("pageInfo").textContent=state.loading?`${state.hotels.length} found`:`${a.length} results`;
+  $("emptyState").style.display=(!state.loading&&!a.length)?"block":"none";
+  $("results").innerHTML=state.loading?loadingCards():slice.map(card).join("");
+  pagination(pages);
+  updateMap(slice);
+  $("activeFilterCount").textContent=state.programs.size+state.amenities.size+(state.minStars?1:0)+(state.onlyBenefits?1:0)+(state.onlyOffers?1:0);
+  save();
+}
+function loadingCards(){
+  return Array.from({length:5},(_,i)=>`<article class="hotel skeleton-card"><div class="skeleton skeleton-image"></div><div class="hotel-main"><div class="skeleton skeleton-line wide"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-block"></div></div><div class="hotel-price"><div class="skeleton skeleton-price"></div><div class="skeleton skeleton-button"></div></div></article>`).join("");
+}
+function starsMarkup(h){
+  if(h.stars==null)return `<span class="stars-missing">Star class unavailable</span>`;
+  const n=Math.max(0,Math.min(5,Math.round(Number(h.stars))));
+  return `<span class="hotel-stars" aria-label="${n} star hotel">${"★".repeat(n)}${"☆".repeat(5-n)}</span><span>${n}★ hotel class</span>`;
+}
+function card(h){
+  const idx=h._imageIndex||0,fav=state.favorites.has(String(h.hotel_id)),cmp=state.compare.has(String(h.hotel_id));
+  const imgs=h.images||[],id=esc(h.hotel_id),points=h.points??h.loyalty_points??h.reward_points;
+  const availability=h.available?`<div><div class="price-status">Effective stay</div><div class="price">€${Math.round(h.effective)}</div><div class="nightly">€${Math.round(h.effectiveNightly??0)} / night</div></div>`:
+    `<div><div class="price-status">${h.price?.total===0?"Ausgebucht":"Nicht verfügbar"}</div><div class="unavailable">${h.price?.total===0?"No rooms available":"No live price"}</div></div>`;
+  return `<article class="hotel ${h.available?"":"is-unavailable"}">
+    <div class="gallery" data-gallery="${id}">${imgs[idx]?`<img src="${esc(imgs[idx])}" alt="${esc(h.name)}">`:`<div class="image-empty">No image</div>`}
+      ${imgs.length>1?`<button class="gallery-btn prev" data-prev="${id}" aria-label="Previous image">‹</button><button class="gallery-btn next" data-next="${id}" aria-label="Next image">›</button><span class="dots">${idx+1} / ${imgs.length}</span>`:""}
+    </div>
+    <div class="hotel-main">
+      <div class="hotel-title-row"><div><h3 class="hotel-name">${esc(h.name)}</h3><div class="hotel-sub"><span class="programme">${esc(h.program||"Independent")}</span>${h.brand?`<span>${esc(h.brand)}</span>`:""}${STATUS[h.program]?`<span>${esc(STATUS[h.program])}</span>`:""}</div></div></div>
+      <div class="hotel-meta">${starsMarkup(h)}${h.rating!=null?`<span>Rating ${Number(h.rating).toFixed(1)}${h.reviews?` · ${Number(h.reviews).toLocaleString()}`:""}</span>`:""}${h.address?`<span>${esc(h.address)}</span>`:""}</div>
+      <div class="amenities">${(h.amenities||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>
+      <div class="benefits">${h.benefits.map(x=>`<span class="chip benefit-chip">${esc(x)}</span>`).join("")}${points!=null?`<span class="chip points-chip">${esc(points)} points</span>`:""}</div>
+    </div>
+    <div class="hotel-price">${availability}<div class="actions">
+      ${h.official_url?`<a href="${esc(h.official_url)}" target="_blank" rel="noopener noreferrer">Hotel website ↗</a>`:""}
+      ${h.booking_url?`<a href="${esc(h.booking_url)}" target="_blank" rel="noopener noreferrer">Book ↗</a>`:""}
+      <button class="fav ${fav?"active":""}" data-fav="${id}">${fav?"Saved":"Save"}</button>
+      <button class="compare ${cmp?"active":""}" data-compare="${id}">${cmp?"Compared":"Compare"}</button>
+    </div></div>
+  </article>`;
+}
+function pagination(p){
+  if(p<=1){$("pagination").innerHTML="";return}
+  const current=state.page, nums=new Set([1,p,current,current-1,current+1].filter(n=>n>=1&&n<=p));
+  const arr=[...nums].sort((a,b)=>a-b),out=[];
+  let last=0;
+  for(const n of arr){if(last&&n-last>1)out.push(`<span class="page-gap">…</span>`);out.push(`<button class="${n===current?"active":""}" data-page="${n}">${n}</button>`);last=n}
+  $("pagination").innerHTML=`<button class="page-arrow" data-page="${Math.max(1,current-1)}" ${current===1?"disabled":""}>←</button>${out.join("")}<button class="page-arrow" data-page="${Math.min(p,current+1)}" ${current===p?"disabled":""}>→</button>`;
+}
+function setupFilters(){
+  document.querySelectorAll("#programFilters input").forEach(x=>x.addEventListener("change",()=>x.checked?state.programs.add(x.value):state.programs.delete(x.value)));
+  document.querySelectorAll(".amenity-filter-grid input").forEach(x=>x.addEventListener("change",()=>x.checked?state.amenities.add(x.value):state.amenities.delete(x.value)));
+  document.querySelectorAll("#starFilters input").forEach(x=>x.addEventListener("change",()=>{if(x.checked)state.minStars=Number(x.value)}));
+  $("onlyBenefits").addEventListener("change",e=>state.onlyBenefits=e.target.checked);
+  $("onlyOffers").addEventListener("change",e=>state.onlyOffers=e.target.checked);
+  $("applyFilters").onclick=()=>{$("filterDrawer").classList.remove("open");applyFilters()};
+  $("resetFilters").onclick=resetFilters;
+  $("resetAll").onclick=resetFilters;
+}
+function resetFilters(){
+  document.querySelectorAll('#programFilters input,.amenity-filter-grid input').forEach(x=>x.checked=false);
+  const any=$('#starFilters input[value="0"]');if(any)any.checked=true;
+  $("onlyBenefits").checked=false;$("onlyOffers").checked=false;
+  state.programs.clear();state.amenities.clear();state.minStars=0;state.onlyBenefits=false;state.onlyOffers=false;
+  applyFilters();
+}
+async function search(){
+  const city=$("city").value.trim(),{a,b}=dates();
+  if(!city||!a||!b||b<=a)return alert("Please enter a valid location and dates.");
+  $("searchButton").disabled=true;$("searchButton").textContent="Searching";
+  state.loading=true;state.hotels=[];state.filtered=[];state.page=1;render();
+  try{
+    const u=new URLSearchParams({location:city,check_in:a,check_out:b,adults:$("guests").value,pages:"10",stream:"1"});
+    const r=await fetch(`${API_URL}?${u}`);
+    if(!r.ok)throw Error("Hotel search failed.");
+    const reader=r.body?.getReader();
+    if(!reader)throw Error("Streaming search is not supported by this browser.");
+    const decoder=new TextDecoder();let buffer="";
+    while(true){
+      const {value,done}=await reader.read();if(done)break;
+      buffer+=decoder.decode(value,{stream:true});
+      const lines=buffer.split("\n");buffer=lines.pop()||"";
+      for(const line of lines){if(!line.trim())continue;const ev=JSON.parse(line);
+        if(ev.type==="hotels"){state.hotels=ev.hotels||[];applyFilters(false)}
+        if(ev.type==="done"){state.hotels=ev.hotels||state.hotels;$("resultTitle").textContent=`Hotels in ${city}`;applyFilters(false)}
+        if(ev.type==="error")throw Error(ev.error||"Hotel search failed.");
+      }
+    }
+    if(buffer.trim()){const ev=JSON.parse(buffer);if(ev.hotels)state.hotels=ev.hotels}
+    $("resultTitle").textContent=`Hotels in ${city}`;
+  }catch(e){$("results").innerHTML="";alert(e.message)}
+  finally{state.loading=false;applyFilters(false);$("searchButton").disabled=false;$("searchButton").textContent="Search"}
+}
+function updateMap(a){
+  if(!state.map)return;
+  state.markers.forEach(m=>m.remove());state.markers=[];
+  const valid=a.filter(h=>Number.isFinite(h.latitude)&&Number.isFinite(h.longitude));
+  valid.forEach(h=>{const m=L.marker([h.latitude,h.longitude]).addTo(state.map).bindPopup(`<strong>${esc(h.name)}</strong><br>${esc(h.program||"Independent")}<br>${h.available?`€${Math.round(h.effective)}`:"Not available"}`);state.markers.push(m)});
+  if(valid.length)state.map.fitBounds(L.latLngBounds(valid.map(h=>[h.latitude,h.longitude])),{padding:[30,30],maxZoom:13});
+}
+function initMap(){
+  if(!window.L||state.mapReady)return;
+  state.map=L.map("map",{zoomControl:false}).setView([50.11,8.68],11);
+  L.control.zoom({position:"bottomright"}).addTo(state.map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors",maxZoom:19}).addTo(state.map);
+  state.mapReady=true;
+}
+function showCompare(){
+  const a=state.hotels.map(enrich).filter(h=>state.compare.has(String(h.hotel_id)));
+  if(!a.length){$("compareDrawer").classList.add("hidden");return alert("Add 2–3 hotels to Compare first.")}
+  $("compareContent").innerHTML=`<div class="compare-grid">${a.map(h=>`<div class="compare-col">
+    <div class="compare-top"><img src="${esc(h.thumbnail||h.images?.[0]||"")}" alt=""><button class="remove-btn" data-remove-compare="${esc(h.hotel_id)}" aria-label="Remove">×</button></div>
+    <h3>${esc(h.name)}</h3><p>${esc(h.program||"Independent")}${h.brand?` · ${esc(h.brand)}`:""}</p>
+    <div class="compare-row"><span class="compare-label">Hotel class</span>${h.stars??"—"}★</div>
+    <div class="compare-row"><span class="compare-label">Price</span>${h.available?`€${Math.round(h.effective)} · €${Math.round(h.effectiveNightly??0)}/night`:"Not available"}</div>
+    <div class="compare-row"><span class="compare-label">Benefits</span>${esc(h.benefits.join(" · ")||"—")}</div>
+    <div class="compare-row"><span class="compare-label">Amenities</span>${esc((h.amenities||[]).join(" · ")||"—")}</div>
+    <div class="compare-row"><span class="compare-label">Points</span>${esc(h.points??h.loyalty_points??h.reward_points??"—")}</div>
+  </div>`).join("")}</div>`;
+  $("compareDrawer").classList.remove("hidden");
+}
+document.addEventListener("click",e=>{
+  const f=e.target.closest("[data-fav]");
+  if(f){const id=f.dataset.fav;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);render();return}
+  const c=e.target.closest("[data-compare]");
+  if(c){const id=c.dataset.compare;if(state.compare.has(id))state.compare.delete(id);else{if(state.compare.size>=3)return alert("Compare is limited to 3 hotels.");state.compare.add(id)}render();return}
+  const rm=e.target.closest("[data-remove-compare]");
+  if(rm){state.compare.delete(rm.dataset.removeCompare);save();showCompare();render();return}
+  const p=e.target.closest("[data-page]");
+  if(p&&!p.disabled){state.page=Number(p.dataset.page);render();window.scrollTo({top:$("results").offsetTop-90,behavior:"smooth"});return}
+  const prev=e.target.closest("[data-prev]"),next=e.target.closest("[data-next]");
+  if(prev||next){const id=(prev||next).dataset.prev||(prev||next).dataset.next,h=state.hotels.find(x=>String(x.hotel_id)===id);if(!h)return;h._imageIndex=((h._imageIndex||0)+(next?1:-1)+(h.images?.length||1))%(h.images?.length||1);render();return}
+});
+$("searchButton").onclick=search;
+$("openFilters").onclick=()=>$("filterDrawer").classList.add("open");
+$("closeFilters").onclick=()=>$("filterDrawer").classList.remove("open");
+$("sort").onchange=()=>render();
+$("mapToggle").onclick=()=>{$("mapWrap").classList.toggle("hidden");if(!$("mapWrap").classList.contains("hidden")){initMap();setTimeout(()=>state.map?.invalidateSize(),100)}};
+$("favoritesToggle").onclick=()=>{state.filtered=state.hotels.map(enrich).filter(h=>state.favorites.has(String(h.hotel_id)));state.page=1;render()};
+$("compareToggle").onclick=showCompare;
+$("closeCompare").onclick=()=>$("compareDrawer").classList.add("hidden");
+initDates();setupFilters();save();render();
