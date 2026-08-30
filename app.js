@@ -229,8 +229,22 @@ async function searchLive() {
 function setup() {
   setDefaultDates();
   $("searchButton")?.addEventListener("click", searchLive);
-  $("openFilters")?.addEventListener("click", () => { const drawer = $("filterDrawer"); if (drawer) { drawer.classList.add("is-open"); drawer.setAttribute("aria-hidden", "false"); } });
-  $("closeFilters")?.addEventListener("click", () => { const drawer = $("filterDrawer"); if (drawer) { drawer.classList.remove("is-open"); drawer.setAttribute("aria-hidden", "true"); } });
+  $("openFilters")?.addEventListener("click", () => {
+    const drawer = $("filterDrawer");
+    if (drawer) {
+      /* Existing style.css opens the drawer with .open; keep .is-open too for
+         installations that use the newer selector. */
+      drawer.classList.add("open", "is-open");
+      drawer.setAttribute("aria-hidden", "false");
+    }
+  });
+  $("closeFilters")?.addEventListener("click", () => {
+    const drawer = $("filterDrawer");
+    if (drawer) {
+      drawer.classList.remove("open", "is-open");
+      drawer.setAttribute("aria-hidden", "true");
+    }
+  });
   document.querySelectorAll('input[type="checkbox"]').forEach(input => input.addEventListener("change", () => { readFilterInputs(); renderResults(); }));
   $("sort")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
   $("sortSelect")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
