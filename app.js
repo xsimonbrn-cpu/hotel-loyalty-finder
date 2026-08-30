@@ -605,14 +605,14 @@ const PROGRAM_ALIASES = [
 ========================================================= */
 
 const AMENITY_ICON = {
-  Pool: "🏊",
-  Sauna: "♨️",
-  Spa: "🧖",
-  Fitness: "🏋️",
-  Breakfast: "☕",
-  Parking: "🅿️",
-  Restaurant: "🍽️",
-  Bar: "🍸"
+  Pool: "○",
+  Sauna: "⌁",
+  Spa: "◇",
+  Fitness: "+",
+  Breakfast: "□",
+  Parking: "P",
+  Restaurant: "≡",
+  Bar: "•"
 };
 
 /* =========================================================
@@ -1760,7 +1760,7 @@ async function searchLive() {
         "EUR",
 
       pages:
-        "3"
+        "5"
     });
 
   const button =
@@ -1909,6 +1909,19 @@ function amenityChip(
    FILTER STATE
 ========================================================= */
 
+const PROGRAM_FILTER_MAP = {
+  Hilton: "Hilton Honors",
+  Marriott: "Marriott Bonvoy",
+  IHG: "IHG One Rewards",
+  Accor: "ALL - Accor Live Limitless",
+  Radisson: "Radisson Rewards",
+  "Meliá": "MeliáRewards",
+  GHA: "GHA DISCOVERY",
+  Wyndham: "Wyndham Rewards",
+  WorldHotels: "WorldHotels Rewards",
+  "Best Western": "Best Western Rewards"
+};
+
 function selectedProgramFilters() {
   return new Set(
     [
@@ -1917,7 +1930,7 @@ function selectedProgramFilters() {
       )
     ].map(
       input =>
-        input.value
+        PROGRAM_FILTER_MAP[input.value] || input.value
     )
   );
 }
@@ -1926,7 +1939,7 @@ function selectedAmenityFilters() {
   return new Set(
     [
       ...document.querySelectorAll(
-        'input.amenity-filter:checked, input[data-filter="amenity"]:checked'
+        'input.amenity-filter:checked, input[data-filter="amenity"]:checked, input[data-type="amenity"]:checked'
       )
     ].map(
       input =>
@@ -2289,7 +2302,7 @@ function render() {
             hotel.amexTriggered
               ? `
                 <span>
-                  💳 Amex -€${Math.round(
+                  AMEX · -€${Math.round(
                     hotel.amexCredit
                   )}
                 </span>
@@ -2300,7 +2313,7 @@ function render() {
             hotel.promotion
               ? `
                 <span>
-                  🎁 20% personal promotion
+                  20% personal promotion
                 </span>
               `
               : "";
@@ -2322,14 +2335,14 @@ function render() {
               `
               : `
                 <div class="hotel-image hotel-image-empty">
-                  🏨
+                  □
                 </div>
               `;
 
           const rating =
             hotel.rating != null
               ? `
-                ⭐ ${hotel.rating.toFixed(
+                Rating ${hotel.rating.toFixed(
                   1
                 )}
 
@@ -2370,13 +2383,13 @@ function render() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Hotel website ↗
+                  Hotel website  ↗
                 </a>
               `
               : "";
 
           /*
-            BOOKING OPTIONS
+            HOTEL LINKS
           */
 
           const booking =
@@ -2572,7 +2585,7 @@ function render() {
                       hotel.promotion
                         ? `
                           <br>
-                          🎁 Personal promotion:
+                          Personal promotion:
                           -20%
                         `
                         : ""
@@ -2582,7 +2595,7 @@ function render() {
                       hotel.amexTriggered
                         ? `
                           <br>
-                          💳 Amex credit:
+                          AMEX credit:
                           -€${Math.round(
                             hotel.amexCredit
                           )}
@@ -2626,7 +2639,7 @@ function updateFilterCount() {
 
   const amenityChecks =
     document.querySelectorAll(
-      'input.amenity-filter:checked, input[data-filter="amenity"]:checked'
+      'input.amenity-filter:checked, input[data-filter="amenity"]:checked, input[data-type="amenity"]:checked'
     ).length;
 
   const extras =
@@ -3074,7 +3087,7 @@ function openBookingModal(
           <p
             class="eyebrow"
           >
-            BOOKING OPTIONS
+            HOTEL LINKS
           </p>
 
           <h2>
@@ -3612,7 +3625,7 @@ function setup() {
 
   document
     .querySelectorAll(
-      'input.amenity-filter, input[data-filter="amenity"]'
+      'input.amenity-filter, input[data-filter="amenity"], input[data-type="amenity"]'
     )
     .forEach(
       input => {
@@ -3686,7 +3699,7 @@ function setup() {
     () => {
       document
         .querySelectorAll(
-          'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"]'
+          'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"], input[data-type="amenity"]'
         )
         .forEach(
           input => {
