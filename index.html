@@ -42,8 +42,12 @@
           <label>
             <span>Guests</span>
             <select id="guests">
-              <option>1</option><option selected>2</option><option>3</option>
-              <option>4</option><option>5</option><option>6</option>
+              <option>1</option>
+              <option selected>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
             </select>
           </label>
           <button id="searchButton" class="search-button" type="button">Search</button>
@@ -67,31 +71,33 @@
         <div class="drawer-section">
           <p class="drawer-label">Loyalty program</p>
           <div class="drawer-grid">
-            <label class="drawer-check"><input type="checkbox" value="Hilton"><span>Hilton</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Marriott"><span>Marriott</span></label>
-            <label class="drawer-check"><input type="checkbox" value="IHG"><span>IHG</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Accor"><span>Accor</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Radisson"><span>Radisson</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Meliá"><span>Meliá</span></label>
-            <label class="drawer-check"><input type="checkbox" value="GHA"><span>GHA</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Wyndham"><span>Wyndham</span></label>
-            <label class="drawer-check"><input type="checkbox" value="WorldHotels"><span>WorldHotels</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Best Western"><span>Best Western</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Hilton"><span>Hilton</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Marriott"><span>Marriott</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="IHG"><span>IHG</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Accor"><span>Accor</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Radisson"><span>Radisson</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Meliá"><span>Meliá</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="GHA"><span>GHA</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Wyndham"><span>Wyndham</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="WorldHotels"><span>WorldHotels</span></label>
+            <label class="drawer-check"><input class="program-filter" data-filter="program" type="checkbox" value="Best Western"><span>Best Western</span></label>
           </div>
+          <p class="drawer-help">Select one or more loyalty programs. Multiple programs are combined.</p>
         </div>
 
         <div class="drawer-section">
           <p class="drawer-label">Amenities</p>
           <div class="drawer-grid">
-            <label class="drawer-check"><input type="checkbox" value="Pool" data-type="amenity"><span>Pool</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Sauna" data-type="amenity"><span>Sauna</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Spa" data-type="amenity"><span>Spa</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Fitness" data-type="amenity"><span>Fitness</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Breakfast" data-type="amenity"><span>Breakfast</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Parking" data-type="amenity"><span>Parking</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Restaurant" data-type="amenity"><span>Restaurant</span></label>
-            <label class="drawer-check"><input type="checkbox" value="Bar" data-type="amenity"><span>Bar</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Pool"><span>Pool</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Sauna"><span>Sauna</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Spa"><span>Spa</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Fitness"><span>Fitness</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Breakfast"><span>Breakfast</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Parking"><span>Parking</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Restaurant"><span>Restaurant</span></label>
+            <label class="drawer-check"><input class="amenity-filter" data-filter="amenity" type="checkbox" value="Bar"><span>Bar</span></label>
           </div>
+          <p class="drawer-help">All selected amenities must be present.</p>
         </div>
 
         <div class="drawer-section two-col">
@@ -121,7 +127,6 @@
           <button id="applyFilters" class="search-button" type="button">Apply</button>
         </div>
       </aside>
-      </section>
 
       <section class="results-head">
         <div>
@@ -129,6 +134,7 @@
           <h2 id="resultTitle">Hotels in Frankfurt</h2>
           <p id="resultMeta" class="muted">Select your dates and search.</p>
         </div>
+
         <label class="sort-wrap">
           <span>Sort</span>
           <select id="sort">
@@ -153,6 +159,7 @@
       <span>Personal use</span>
     </footer>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
