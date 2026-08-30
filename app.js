@@ -52,7 +52,7 @@ const PROGRAM_TO_CHAIN = {
   "Best Western Rewards": "Best Western"
 };
 
-const state = { activePrograms: new Set(), amenities: new Set(), sort: "effective" };
+const state = { activePrograms: new Set(), amenities: new Set(), onlyBenefits: false, onlyOffers: false, sort: "effective" };
 let liveHotels = [];
 let searchPerformed = false;
 let liveTotalCount = 0;
@@ -138,9 +138,69 @@ function deduplicateHotels(hotels) {
   });
 }
 
+function savePersonalSettings() {
+  try {
+    localStorage.setItem("hotelLoyaltySettings", JSON.stringify({ status: PERSONAL_STATUS, points: PERSONAL_POINTS, offers: amexOffers }));
+  } catch { /* The app remains usable when browser storage is unavailable. */ }
+}
+
+function loadPersonalSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("hotelLoyaltySettings") || "null");
+    if (!saved) return;
+    Object.assign(PERSONAL_STATUS, saved.status || {});
+    Object.assign(PERSONAL_POINTS, saved.points || {});
+    if (Array.isArray(saved.offers)) amexOffers = saved.offers;
+  } catch { /* Ignore malformed saved settings. */ }
+}
+
+function renderPersonalSettings() {
+  const statusFields = $("statusFields");
+  if (statusFields) {
+    statusFields.innerHTML = Object.entries(LOYALTY_PROGRAMS).map(([program, levels]) =>
+      `<label class="status-row"><span>${escapeHtml(program)}</span><select data-status-program="${escapeHtml(program)}">${levels.map(level => `<option value="${escapeHtml(level)}"${PERSONAL_STATUS[program] === level ? " selected" : ""}>${escapeHtml(level)}</option>`).join("")}</select></label>`
+    ).join("");
+    statusFields.querySelectorAll("select[data-status-program]").forEach(select => select.addEventListener("change", event => {
+      PERSONAL_STATUS[event.target.dataset.statusProgram] = event.target.value;
+      savePersonalSettings(); renderResults();
+    }));
+  }
+  const pointsFields = $("pointsFields");
+  if (pointsFields) {
+    pointsFields.innerHTML = Object.keys(LOYALTY_PROGRAMS).map(program =>
+      `<label class="status-row"><span>${escapeHtml(program)}</span><input type="number" min="0" step="1" value="${escapeHtml(PERSONAL_POINTS[program] || 0)}" data-points-program="${escapeHtml(program)}" aria-label="${escapeHtml(program)} points"></label>`
+    ).join("");
+    pointsFields.querySelectorAll("input[data-points-program]").forEach(input => input.addEventListener("input", event => {
+      PERSONAL_POINTS[event.target.dataset.pointsProgram] = Math.max(0, number(event.target.value) || 0);
+      savePersonalSettings();
+    }));
+  }
+  renderAmexOffers();
+}
+
+function renderAmexOffers() {
+  const container = $("amexFields");
+  if (!container) return;
+  container.innerHTML = amexOffers.map((offer, index) =>
+    `<div class="amex-row"><input data-offer="name" data-index="${index}" value="${escapeHtml(offer.name || "")}" placeholder="Hotel / programme" aria-label="Offer name"><input type="number" data-offer="spend" data-index="${index}" value="${escapeHtml(offer.spend ?? "")}" min="0" placeholder="Spend €" aria-label="Minimum spend"><input type="number" data-offer="credit" data-index="${index}" value="${escapeHtml(offer.credit ?? "")}" min="0" placeholder="Credit €" aria-label="Credit"><button type="button" class="secondary-button" data-remove-offer="${index}">Remove</button></div>`
+  ).join("");
+  container.querySelectorAll("input[data-offer]").forEach(input => input.addEventListener("input", event => {
+    const index = Number(event.target.dataset.index);
+    const key = event.target.dataset.offer;
+    amexOffers[index][key] = key === "name" ? event.target.value : (number(event.target.value) ?? 0);
+    savePersonalSettings(); renderResults();
+  }));
+  container.querySelectorAll("button[data-remove-offer]").forEach(button => button.addEventListener("click", event => {
+    amexOffers.splice(Number(event.currentTarget.dataset.removeOffer), 1);
+    savePersonalSettings(); renderAmexOffers(); renderResults();
+  }));
+}
+
 function filterHotels(hotels) {
   return hotels.filter(hotel => {
     if (state.activePrograms.size && !state.activePrograms.has(hotel.program)) return false;
+    if (state.onlyBenefits && !hotel.program) return false;
+    if (state.onlyOffers && !amexOffers.some(offer => normaliseText(offer.name) && `${normaliseText(hotel.name)} ${normaliseText(hotel.program)} ${normaliseText(hotel.chain)}`.includes(normaliseText(offer.name)))) return false;
     return [...state.amenities].every(required => hotel.amenities.some(amenity => normaliseText(amenity).includes(normaliseText(required))));
   });
 }
@@ -196,11 +256,28 @@ function readFilterInputs() {
       if (program) state.activePrograms.add(program);
     }
   });
+  state.onlyBenefits = Boolean($("onlyBenefits")?.checked);
+  state.onlyOffers = Boolean($("onlyOffers")?.checked);
 }
 
 function setLoading(isLoading) {
   const button = $("searchButton");
   if (button) { button.disabled = isLoading; button.textContent = isLoading ? "Searching…" : "Search"; }
+}
+
+function closeFilters() {
+  const drawer = $("filterDrawer");
+  if (!drawer) return;
+  drawer.classList.remove("open", "is-open");
+  drawer.style.removeProperty("transform");
+  drawer.style.removeProperty("pointer-events");
+  drawer.setAttribute("aria-hidden", "true");
+}
+
+function resetFilters() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(input => { input.checked = false; });
+  readFilterInputs();
+  renderResults();
 }
 
 async function searchLive() {
@@ -230,6 +307,8 @@ async function searchLive() {
 
 function setup() {
   setDefaultDates();
+  loadPersonalSettings();
+  renderPersonalSettings();
   /* The supplied index.html contains a Hampton sample card.  It is not an API
      result and must not be mistaken for one or survive a filtered search. */
   const initialResults = resultsContainer();
@@ -246,16 +325,28 @@ function setup() {
       drawer.setAttribute("aria-hidden", "false");
     }
   });
-  $("closeFilters")?.addEventListener("click", () => {
-    const drawer = $("filterDrawer");
-    if (drawer) {
-      drawer.classList.remove("open", "is-open");
-      drawer.style.removeProperty("transform");
-      drawer.style.removeProperty("pointer-events");
-      drawer.setAttribute("aria-hidden", "true");
+  $("closeFilters")?.addEventListener("click", closeFilters);
+  document.querySelectorAll('input[type="checkbox"]').forEach(input => input.addEventListener("change", () => { readFilterInputs(); renderResults(); }));
+  $("applyFilters")?.addEventListener("click", () => { readFilterInputs(); renderResults(); closeFilters(); });
+  $("resetFilters")?.addEventListener("click", resetFilters);
+  $("addAmex")?.addEventListener("click", () => {
+    amexOffers.push({ name: "", spend: 0, credit: 0 });
+    savePersonalSettings(); renderAmexOffers();
+    const nameInputs = $("amexFields")?.querySelectorAll('input[data-offer="name"]');
+    nameInputs?.[nameInputs.length - 1]?.focus();
+  });
+  /* Supports the supplied markup even if it has buttons without ids. */
+  document.querySelectorAll("button").forEach(button => {
+    const label = button.textContent.trim().toLowerCase();
+    if (label === "apply" && button.id !== "applyFilters" && !button.dataset.filterActionBound) {
+      button.dataset.filterActionBound = "true";
+      button.addEventListener("click", () => { readFilterInputs(); renderResults(); closeFilters(); });
+    }
+    if (label === "reset filters" && button.id !== "resetFilters" && !button.dataset.filterActionBound) {
+      button.dataset.filterActionBound = "true";
+      button.addEventListener("click", resetFilters);
     }
   });
-  document.querySelectorAll('input[type="checkbox"]').forEach(input => input.addEventListener("change", () => { readFilterInputs(); renderResults(); }));
   $("sort")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
   $("sortSelect")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
 }
