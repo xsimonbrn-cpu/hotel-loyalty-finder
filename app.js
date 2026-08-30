@@ -235,6 +235,8 @@ function setup() {
       /* Existing style.css opens the drawer with .open; keep .is-open too for
          installations that use the newer selector. */
       drawer.classList.add("open", "is-open");
+      drawer.style.transform = "translateX(0)";
+      drawer.style.pointerEvents = "auto";
       drawer.setAttribute("aria-hidden", "false");
     }
   });
@@ -242,6 +244,8 @@ function setup() {
     const drawer = $("filterDrawer");
     if (drawer) {
       drawer.classList.remove("open", "is-open");
+      drawer.style.removeProperty("transform");
+      drawer.style.removeProperty("pointer-events");
       drawer.setAttribute("aria-hidden", "true");
     }
   });
