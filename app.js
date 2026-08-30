@@ -1,4 +1,4 @@
-const API_URL = "/api/hotels";
+const API_URL = new URL("/api/hotels", window.location.origin).toString();
 
 const LOYALTY_PROGRAMS = {
   "Hilton Honors": ["Member", "Silver", "Gold", "Diamond", "Diamond Reserve"],
