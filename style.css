@@ -21,8 +21,25 @@ body:before{
   border-bottom:1px solid rgba(216,208,195,.75);
   background:rgba(243,238,229,.95);backdrop-filter:blur(12px)
 }
-.brand{color:var(--ink);text-decoration:none;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;font-weight:500}
+.brand{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:var(--ink);
+  text-decoration:none;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-size:.8rem;
+  font-weight:500
+}
+.brand img{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  display:block
+}
 .brand span{font-weight:300;letter-spacing:.08em}
+.brand strong{font-weight:500}
 .top-note{color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.16em}
 main{width:min(1180px,calc(100% - 40px));margin:auto}
 .hero-compact{padding:62px 0 36px}
@@ -119,6 +136,7 @@ footer{
   .hotel-price{grid-column:auto}
   footer{flex-direction:column;gap:8px}
 }
+
 .amenity-filter {
   display: inline-flex;
   align-items: center;
@@ -141,10 +159,12 @@ footer{
 .amenity-filter:nth-child(6) .amenity-glyph { border-radius: 2px; }
 .amenity-filter:nth-child(7) .amenity-glyph { border-radius: 2px; }
 .amenity-filter:nth-child(8) .amenity-glyph { border-radius: 50%; }
+
 .amenity-filter.active .amenity-glyph,
 .amenity-filter:hover .amenity-glyph {
   border-color: var(--green);
 }
+
 .hotel-amenities {
   display: flex;
   flex-wrap: wrap;
@@ -171,6 +191,7 @@ footer{
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
 .amenity-filter .amenity-glyph::after {
   content: "";
   position: absolute;
@@ -179,6 +200,7 @@ footer{
   border-radius: 2px;
   opacity: .7;
 }
+
 .search-grid-compact {
   grid-template-columns: 1.7fr 1fr 1fr .65fr auto;
 }
@@ -315,94 +337,4 @@ footer{
   .filter-drawer { width:100%; padding:20px; }
   .drawer-grid, .two-col { grid-template-columns:1fr; }
   .amex-row { grid-template-columns:1fr 1fr 1fr auto; }
-}
-
-/* ============================================================
-   LIVE PRICE + BOOKING UI
-   ============================================================ */
-
-.price-source {
-  margin-top: 3px;
-  font-size: 10px;
-  letter-spacing: .04em;
-  color: #8b8b8b;
-}
-
-.booking-button {
-  border: 0;
-  cursor: pointer;
-}
-
-.booking-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-}
-
-.booking-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(30, 30, 26, .30);
-  backdrop-filter: blur(2px);
-}
-
-.booking-modal-panel {
-  position: relative;
-  width: min(560px, calc(100vw - 40px));
-  max-height: calc(100vh - 80px);
-  overflow: auto;
-  margin: 40px auto;
-  padding: 28px;
-  background: #f8f4ed;
-  border: 1px solid #d9d0c4;
-  border-radius: 18px;
-  box-shadow: 0 24px 70px rgba(0,0,0,.16);
-}
-
-.booking-modal-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
-  margin-bottom: 18px;
-}
-
-.booking-modal-head h2 {
-  margin: 4px 0 0;
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1.15;
-}
-
-.booking-loading,
-.booking-empty {
-  color: #77736d;
-  font-size: 14px;
-}
-
-.booking-links {
-  display: grid;
-  gap: 8px;
-}
-
-.booking-link {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 13px 15px;
-  border: 1px solid #ded6cb;
-  border-radius: 10px;
-  background: rgba(255,255,255,.55);
-  color: #2f312d;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.booking-link:hover {
-  background: #fff;
-}
-
-.price-detail a {
-  color: inherit;
-  text-decoration: underline;
 }
