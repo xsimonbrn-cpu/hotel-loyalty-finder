@@ -1,4 +1,5 @@
 const API_BASE_URL = "https://hotel-loyalty-finder.pages.dev";
+const API_BASE_URL = "https://hotel-loyalty-finder.pages.dev";
 const API_URL = `${API_BASE_URL}/api/hotels`;
 
 const LOYALTY_PROGRAMS = {
@@ -295,6 +296,22 @@ function normalizeAmenities(hotel) {
     return raw.split(",").map(x => x.trim()).filter(Boolean);
   }
   return [];
+}
+
+function normalizeBookingUrl(value) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(String(value), window.location.origin);
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.href;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function normalizeHotel(hotel) {
