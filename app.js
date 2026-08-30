@@ -161,7 +161,9 @@ function renderResults() {
   const container = resultsContainer();
   if (!container) return;
   const shown = sortHotels(filterHotels(liveHotels));
-  const meta = $("resultsMeta") || $("resultCount") || $("resultsCount");
+  const meta = $("resultsMeta") || $("resultMeta") || $("resultCount") || $("resultsCount");
+  const emptyState = $("emptyState");
+  if (emptyState) emptyState.hidden = searchPerformed;
   if (meta) meta.textContent = searchPerformed ? `${liveTotalCount} found · ${shown.length} shown` : "";
   const filterCount = $("activeFilterCount");
   if (filterCount) {
@@ -221,13 +223,17 @@ async function searchLive() {
     renderResults();
   } catch (error) {
     searchPerformed = true; liveHotels = []; liveTotalCount = 0; renderResults();
-    const meta = $("resultsMeta") || $("resultCount") || $("resultsCount");
+    const meta = $("resultsMeta") || $("resultMeta") || $("resultCount") || $("resultsCount");
     if (meta) meta.textContent = error.message || "Hotel search failed.";
   } finally { setLoading(false); }
 }
 
 function setup() {
   setDefaultDates();
+  /* The supplied index.html contains a Hampton sample card.  It is not an API
+     result and must not be mistaken for one or survive a filtered search. */
+  const initialResults = resultsContainer();
+  if (initialResults) initialResults.innerHTML = "";
   $("searchButton")?.addEventListener("click", searchLive);
   $("openFilters")?.addEventListener("click", () => {
     const drawer = $("filterDrawer");
