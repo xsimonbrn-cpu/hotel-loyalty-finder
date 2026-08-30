@@ -2,78 +2,34 @@ const API_URL = "/api/hotels";
 
 const LOYALTY_PROGRAMS = {
   "Hilton Honors": [
-    "Member",
-    "Silver",
-    "Gold",
-    "Diamond",
-    "Diamond Reserve"
+    "Member", "Silver", "Gold", "Diamond", "Diamond Reserve"
   ],
-
   "Marriott Bonvoy": [
-    "Member",
-    "Silver Elite",
-    "Gold Elite",
-    "Platinum Elite",
-    "Titanium Elite"
+    "Member", "Silver Elite", "Gold Elite", "Platinum Elite", "Titanium Elite"
   ],
-
   "IHG One Rewards": [
-    "Club Member",
-    "Silver Elite",
-    "Gold Elite",
-    "Platinum Elite",
-    "Diamond Elite"
+    "Club Member", "Silver Elite", "Gold Elite", "Platinum Elite", "Diamond Elite"
   ],
-
   "ALL - Accor Live Limitless": [
-    "Classic",
-    "Silver",
-    "Gold",
-    "Platinum",
-    "Diamond"
+    "Classic", "Silver", "Gold", "Platinum", "Diamond"
   ],
-
   "Radisson Rewards": [
-    "Club",
-    "Premium",
-    "VIP"
+    "Club", "Premium", "VIP"
   ],
-
   "MeliáRewards": [
-    "White",
-    "Silver",
-    "Gold",
-    "Platinum"
+    "White", "Silver", "Gold", "Platinum"
   ],
-
   "GHA DISCOVERY": [
-    "Silver",
-    "Gold",
-    "Platinum",
-    "Titanium"
+    "Silver", "Gold", "Platinum", "Titanium"
   ],
-
   "Wyndham Rewards": [
-    "Blue",
-    "Gold",
-    "Platinum",
-    "Diamond"
+    "Blue", "Gold", "Platinum", "Diamond"
   ],
-
   "WorldHotels Rewards": [
-    "Red",
-    "Gold",
-    "Platinum",
-    "Diamond",
-    "Diamond Select"
+    "Red", "Gold", "Platinum", "Diamond", "Diamond Select"
   ],
-
   "Best Western Rewards": [
-    "Blue",
-    "Gold",
-    "Platinum",
-    "Diamond",
-    "Diamond Select"
+    "Blue", "Gold", "Platinum", "Diamond", "Diamond Select"
   ]
 };
 
@@ -91,8 +47,7 @@ const PERSONAL_STATUS = {
 };
 
 const PERSONAL_POINTS = Object.fromEntries(
-  Object.keys(LOYALTY_PROGRAMS)
-    .map(program => [program, 0])
+  Object.keys(LOYALTY_PROGRAMS).map(program => [program, 0])
 );
 
 let amexOffers = [
@@ -105,15 +60,8 @@ let amexOffers = [
 
 const STATUS_BENEFITS = {
   "Hilton Honors": {
-    "Member": [
-      "Member Rate",
-      "Free Wi-Fi",
-      "Points earning"
-    ],
-    "Silver": [
-      "20% bonus points",
-      "5th night free on reward stays"
-    ],
+    "Member": ["Member Rate", "Free Wi-Fi", "Points earning"],
+    "Silver": ["20% bonus points", "5th night free on reward stays"],
     "Gold": [
       "80% bonus points",
       "Room upgrade subject to availability",
@@ -133,11 +81,7 @@ const STATUS_BENEFITS = {
   },
 
   "Marriott Bonvoy": {
-    "Member": [
-      "Member Rate",
-      "Free Wi-Fi",
-      "Points earning"
-    ],
+    "Member": ["Member Rate", "Free Wi-Fi", "Points earning"],
     "Silver Elite": [
       "10% bonus points",
       "Late check-out subject to availability"
@@ -164,21 +108,9 @@ const STATUS_BENEFITS = {
   },
 
   "IHG One Rewards": {
-    "Club Member": [
-      "Member Rate",
-      "Free Wi-Fi",
-      "Points earning"
-    ],
-    "Silver Elite": [
-      "20% bonus points",
-      "Member Rate",
-      "Free Wi-Fi"
-    ],
-    "Gold Elite": [
-      "40% bonus points",
-      "Member Rate",
-      "Free Wi-Fi"
-    ],
+    "Club Member": ["Member Rate", "Free Wi-Fi", "Points earning"],
+    "Silver Elite": ["20% bonus points", "Member Rate", "Free Wi-Fi"],
+    "Gold Elite": ["40% bonus points", "Member Rate", "Free Wi-Fi"],
     "Platinum Elite": [
       "60% bonus points",
       "Room upgrade subject to availability",
@@ -197,11 +129,7 @@ const STATUS_BENEFITS = {
   },
 
   "ALL - Accor Live Limitless": {
-    "Classic": [
-      "Member Rate",
-      "Free Wi-Fi",
-      "Reward points"
-    ],
+    "Classic": ["Member Rate", "Free Wi-Fi", "Reward points"],
     "Silver": [
       "Welcome drink",
       "Priority Welcome",
@@ -254,10 +182,7 @@ const STATUS_BENEFITS = {
   },
 
   "MeliáRewards": {
-    "White": [
-      "Member Rate",
-      "Points earning"
-    ],
+    "White": ["Member Rate", "Points earning"],
     "Silver": [
       "Room upgrade subject to availability",
       "Late check-out subject to availability"
@@ -306,10 +231,7 @@ const STATUS_BENEFITS = {
   },
 
   "Wyndham Rewards": {
-    "Blue": [
-      "Member Rate",
-      "Points earning"
-    ],
+    "Blue": ["Member Rate", "Points earning"],
     "Gold": [
       "Early check-in subject to availability",
       "Late check-out subject to availability",
@@ -332,10 +254,7 @@ const STATUS_BENEFITS = {
   },
 
   "WorldHotels Rewards": {
-    "Red": [
-      "Member Rate",
-      "Points earning"
-    ],
+    "Red": ["Member Rate", "Points earning"],
     "Gold": [
       "Points bonus",
       "Early check-in / late check-out subject to availability",
@@ -364,10 +283,7 @@ const STATUS_BENEFITS = {
   },
 
   "Best Western Rewards": {
-    "Blue": [
-      "Member Rate",
-      "Points earning"
-    ],
+    "Blue": ["Member Rate", "Points earning"],
     "Gold": [
       "10% bonus points",
       "Welcome amenity",
@@ -522,75 +438,62 @@ let lastSearchMeta = {
   pagesFetched: 0
 };
 
-const $ = id =>
-  document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-/* ---------------------------------------------------------
-   HELPERS
---------------------------------------------------------- */
+function localDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-function setDefaultDates() {
+/*
+  DEFAULT:
+  TODAY -> TOMORROW
+  One night.
+*/
+function setDefaultDates(force = true) {
   const today = new Date();
 
-  const checkIn =
-    new Date(today);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
 
-  const checkOut =
-    new Date(today);
+  const checkIn = localDateString(today);
+  const checkOut = localDateString(tomorrow);
 
-  checkIn.setDate(
-    today.getDate() + 7
-  );
-
-  checkOut.setDate(
-    today.getDate() + 9
-  );
-
-  if ($("checkIn")) {
-    $("checkIn").value =
-      checkIn
-        .toISOString()
-        .slice(0, 10);
+  if (force || !$("checkIn")?.value) {
+    if ($("checkIn")) $("checkIn").value = checkIn;
   }
 
-  if ($("checkOut")) {
-    $("checkOut").value =
-      checkOut
-        .toISOString()
-        .slice(0, 10);
+  if (force || !$("checkOut")?.value) {
+    if ($("checkOut")) $("checkOut").value = checkOut;
   }
 }
 
 function nights() {
-  const a =
-    new Date(
-      $("checkIn").value
-    );
+  const checkIn = $("checkIn")?.value;
+  const checkOut = $("checkOut")?.value;
 
-  const b =
-    new Date(
-      $("checkOut").value
-    );
+  if (!checkIn || !checkOut) return 1;
 
-  return Math.max(
-    Math.round(
-      (b - a) / 86400000
-    ),
-    1
+  const a = new Date(`${checkIn}T00:00:00`);
+  const b = new Date(`${checkOut}T00:00:00`);
+
+  const diff = Math.round(
+    (b.getTime() - a.getTime()) / 86400000
   );
+
+  return Math.max(diff, 1);
 }
 
 function formatDate(value) {
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    }
-  ).format(
-    new Date(value)
-  );
+  if (!value) return "";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date(`${value}T00:00:00`));
 }
 
 function number(value) {
@@ -602,30 +505,50 @@ function number(value) {
     return null;
   }
 
-  if (
-    typeof value === "number"
-  ) {
-    return Number.isFinite(value)
-      ? value
-      : null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
   }
 
-  const parsed =
-    Number(
-      String(value)
-        .replace(/[^\d.,-]/g, "")
-        .replace(/,/g, "")
+  if (typeof value === "object") {
+    return number(
+      value.extracted_lowest ??
+      value.extracted_price ??
+      value.extracted_total ??
+      value.price ??
+      value.total ??
+      value.value ??
+      null
     );
+  }
 
-  return Number.isFinite(parsed)
-    ? parsed
-    : null;
+  let text = String(value)
+    .replace(/[^\d.,-]/g, "")
+    .trim();
+
+  if (!text) return null;
+
+  if (text.includes(",") && text.includes(".")) {
+    if (text.lastIndexOf(",") > text.lastIndexOf(".")) {
+      text = text.replace(/\./g, "").replace(",", ".");
+    } else {
+      text = text.replace(/,/g, "");
+    }
+  } else if (text.includes(",")) {
+    const parts = text.split(",");
+    if (parts.length === 2 && parts[1].length <= 2) {
+      text = text.replace(",", ".");
+    } else {
+      text = text.replace(/,/g, "");
+    }
+  }
+
+  const parsed = Number(text);
+
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function first(obj, keys) {
-  for (
-    const key of keys
-  ) {
+  for (const key of keys) {
     if (
       obj &&
       obj[key] !== null &&
@@ -657,197 +580,163 @@ function extractHotels(payload) {
     payload?.data
   ];
 
-  return (
-    possible.find(
-      Array.isArray
-    ) || []
-  );
+  return possible.find(Array.isArray) || [];
 }
 
-/* ---------------------------------------------------------
-   AMENITIES
---------------------------------------------------------- */
-
 function normalizeAmenities(hotel) {
-  const raw =
-    first(
-      hotel,
-      [
-        "amenities",
-        "facilities",
-        "amenity"
-      ]
-    ) || [];
+  const raw = first(hotel, [
+    "amenities",
+    "facilities",
+    "amenity"
+  ]) || [];
 
-  if (
-    Array.isArray(raw)
-  ) {
-    return raw
+  let result = [];
+
+  if (Array.isArray(raw)) {
+    result = raw
       .map(item => {
-        if (
-          typeof item === "string"
-        ) {
-          return item;
+        if (typeof item === "string") {
+          return item.trim();
         }
 
         return String(
-          first(
-            item,
-            [
-              "name",
-              "label",
-              "title"
-            ]
-          ) || ""
-        );
+          first(item, ["name", "label", "title"]) || ""
+        ).trim();
       })
       .filter(Boolean);
-  }
-
-  if (
-    typeof raw === "string"
-  ) {
-    return raw
+  } else if (typeof raw === "string") {
+    result = raw
       .split(",")
       .map(x => x.trim())
       .filter(Boolean);
   }
 
-  return [];
+  const text = [
+    hotel?.description,
+    hotel?.amenities_text,
+    hotel?.hotel_amenities
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const detected = [
+    ["Pool", /pool|swimming/i],
+    ["Spa", /spa|wellness/i],
+    ["Fitness", /fitness|gym/i],
+    ["Breakfast", /breakfast/i],
+    ["Parking", /parking/i],
+    ["Restaurant", /restaurant/i],
+    ["Bar", /\bbar\b/i],
+    ["Sauna", /sauna/i]
+  ];
+
+  for (const [name, pattern] of detected) {
+    if (pattern.test(text)) result.push(name);
+  }
+
+  return [...new Set(result)];
 }
 
-/* ---------------------------------------------------------
-   IMAGES + PRICES
---------------------------------------------------------- */
-
 function normalizeHotel(hotel) {
-  const price =
-    hotel?.price || {};
+  const price = hotel?.price || {};
 
-  const rate =
-    price?.rate_per_night ||
-    {};
+  let nightly = number(
+    price?.price_per_night ??
+    price?.current ??
+    price?.nightly ??
+    price?.rate_per_night ??
+    null
+  );
 
-  const totalRate =
-    price?.total_rate ||
-    {};
+  let total = number(
+    price?.total_price ??
+    price?.total ??
+    price?.total_rate ??
+    null
+  );
 
-  /*
-  Backend already normalizes these,
-  but the frontend also accepts raw
-  SerpApi structures for safety.
-  */
+  const n = nights();
 
-  let nightly =
-    number(
-      price?.price_per_night ??
-      price?.current ??
-      rate?.extracted_lowest ??
-      rate?.extracted_price ??
-      null
-    );
-
-  let total =
-    number(
-      price?.total_price ??
-      price?.total ??
-      totalRate?.extracted_lowest ??
-      totalRate?.extracted_total ??
-      null
-    );
-
-  const n =
-    nights();
-
-  if (
-    total == null &&
-    nightly != null
-  ) {
-    total =
-      nightly * n;
+  if (total == null && nightly != null) {
+    total = nightly * n;
   }
 
-  if (
-    nightly == null &&
-    total != null
-  ) {
-    nightly =
-      total / n;
+  if (nightly == null && total != null) {
+    nightly = total / n;
   }
 
-  const images =
-    Array.isArray(
-      hotel?.images
-    )
-      ? hotel.images
-      : [];
+  const images = Array.isArray(hotel?.images)
+    ? hotel.images
+    : [];
 
   let image = null;
 
-  if (
-    images.length
-  ) {
-    const firstImage =
-      images[0];
+  for (const item of images) {
+    if (typeof item === "string" && item.trim()) {
+      image = item.trim();
+      break;
+    }
 
-    if (
-      typeof firstImage ===
-      "string"
-    ) {
-      image =
-        firstImage;
-    } else {
-      image =
-        first(
-          firstImage,
-          [
-            "original_image",
-            "image",
-            "url",
-            "src",
-            "thumbnail"
-          ]
-        );
+    if (item && typeof item === "object") {
+      image = first(item, [
+        "original_image",
+        "original",
+        "image",
+        "image_url",
+        "url",
+        "src",
+        "thumbnail"
+      ]);
+
+      if (image) break;
     }
   }
 
   if (!image) {
-    image =
-      first(
-        hotel,
-        [
-          "thumbnail",
-          "original_image",
-          "image",
-          "image_url"
-        ]
-      );
+    image = first(hotel, [
+      "original_image",
+      "thumbnail",
+      "image",
+      "image_url",
+      "thumbnail_url"
+    ]);
   }
 
-  const rating =
-    number(
-      hotel?.rating?.value ??
-      hotel?.overall_rating ??
-      hotel?.rating_value ??
-      hotel?.score ??
-      null
-    );
+  const rating = number(
+    hotel?.rating?.value ??
+    hotel?.overall_rating ??
+    hotel?.rating_value ??
+    hotel?.score ??
+    null
+  );
 
-  const reviewCount =
-    number(
-      hotel?.rating?.votes ??
-      hotel?.reviews ??
-      hotel?.review_count ??
-      null
-    );
+  const reviewCount = number(
+    hotel?.rating?.votes ??
+    hotel?.reviews ??
+    hotel?.review_count ??
+    hotel?.ratings_count ??
+    null
+  );
 
-  const stars =
-    number(
-      hotel?.stars ??
-      hotel?.extracted_hotel_class ??
-      hotel?.hotel_class ??
-      null
-    );
+  let stars = number(
+    hotel?.stars ??
+    hotel?.hotel_class ??
+    hotel?.extracted_hotel_class ??
+    null
+  );
+
+  if (
+    stars == null &&
+    typeof hotel?.hotel_class === "string"
+  ) {
+    const match = hotel.hotel_class.match(/([1-5])/);
+    if (match) stars = Number(match[1]);
+  }
+
+  const address =
+    hotel?.location?.address ??
+    hotel?.address ??
+    null;
 
   return {
     raw: hotel,
@@ -859,35 +748,39 @@ function normalizeHotel(hotel) {
       hotel?.id ??
       null,
 
-    name:
-      String(
-        hotel?.name ??
-        "Unnamed hotel"
-      ),
+    name: String(
+      hotel?.name ??
+      hotel?.hotel_name ??
+      hotel?.title ??
+      "Unnamed hotel"
+    ),
+
+    brand:
+      hotel?.brand ??
+      hotel?.brand_name ??
+      hotel?.chain ??
+      null,
+
+    chain:
+      hotel?.chain ??
+      hotel?.chain_name ??
+      hotel?.brand ??
+      hotel?.brand_name ??
+      null,
 
     total,
-
     nightly,
 
     image,
-
     images,
 
     rating,
-
     reviewCount,
-
     stars,
 
-    amenities:
-      normalizeAmenities(
-        hotel
-      ),
+    amenities: normalizeAmenities(hotel),
 
-    address:
-      hotel?.location?.address ??
-      hotel?.address ??
-      null,
+    address,
 
     latitude:
       hotel?.location?.latitude ??
@@ -903,6 +796,14 @@ function normalizeHotel(hotel) {
       hotel?.booking_url ??
       hotel?.hotel_url ??
       hotel?.url ??
+      hotel?.link ??
+      null,
+
+    booking_url:
+      hotel?.booking_url ??
+      hotel?.hotel_url ??
+      hotel?.url ??
+      hotel?.link ??
       null,
 
     property_token:
@@ -911,55 +812,37 @@ function normalizeHotel(hotel) {
   };
 }
 
-/* ---------------------------------------------------------
-   LOYALTY CLASSIFICATION
---------------------------------------------------------- */
-
 function normalizeBrandText(value) {
   return String(value || "")
     .normalize("NFD")
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
-    )
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[’']/g, "")
-    .replace(
-      /[^a-z0-9]+/g,
-      " "
-    )
+    .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
 
-function classifyHotel(name) {
-  const text =
-    normalizeBrandText(
-      name
-    );
+function classifyHotel(name, brand = "", chain = "") {
+  const text = normalizeBrandText(
+    `${name} ${brand} ${chain}`
+  );
 
-  for (
-    const [
-      needle,
-      chain,
-      brand,
-      program
-    ]
-    of PROGRAM_ALIASES
-  ) {
+  for (const [
+    needle,
+    chainName,
+    brandName,
+    program
+  ] of PROGRAM_ALIASES) {
     const normalizedNeedle =
-      normalizeBrandText(
-        needle
-      );
+      normalizeBrandText(needle);
 
     if (
       normalizedNeedle &&
-      text.includes(
-        normalizedNeedle
-      )
+      text.includes(normalizedNeedle)
     ) {
       return {
-        chain,
-        brand,
+        chain: chainName,
+        brand: brandName,
         program
       };
     }
@@ -967,33 +850,18 @@ function classifyHotel(name) {
 
   return {
     chain: "Other",
-    brand: "Other",
+    brand: brand || "Other",
     program: null
   };
 }
 
 function benefitsFor(program) {
-  const status =
-    PERSONAL_STATUS[
-      program
-    ];
+  const status = PERSONAL_STATUS[program];
 
-  return (
-    STATUS_BENEFITS[
-      program
-    ]?.[status] || []
-  );
+  return STATUS_BENEFITS[program]?.[status] || [];
 }
 
-/* ---------------------------------------------------------
-   AMEX
---------------------------------------------------------- */
-
-function amexFor(
-  hotel,
-  program,
-  brand
-) {
+function amexFor(hotel, program, brand) {
   const haystack =
     `${hotel.name} ${program || ""} ${brand || ""}`
       .toLowerCase();
@@ -1004,32 +872,25 @@ function amexFor(
         offer =>
           offer.name &&
           haystack.includes(
-            String(
-              offer.name
-            ).toLowerCase()
+            String(offer.name).toLowerCase()
           )
       )
       .sort(
         (a, b) =>
           Number(b.credit || 0) -
           Number(a.credit || 0)
-      )[0] ||
-    null
+      )[0] || null
   );
 }
 
-/* ---------------------------------------------------------
-   ENRICH
---------------------------------------------------------- */
-
 function enrich(hotel) {
-  const cls =
-    classifyHotel(
-      hotel.name
-    );
+  const cls = classifyHotel(
+    hotel.name,
+    hotel.brand,
+    hotel.chain
+  );
 
-  const n =
-    nights();
+  const n = nights();
 
   const nightly =
     hotel.nightly != null
@@ -1045,38 +906,24 @@ function enrich(hotel) {
         ? nightly * n
         : null;
 
-  const safeNightly =
-    nightly ?? 0;
+  const safeNightly = nightly ?? 0;
+  const safeTotal = total ?? 0;
 
-  const safeTotal =
-    total ?? 0;
+  const program = cls.program;
 
-  const program =
-    cls.program;
+  const status = program
+    ? PERSONAL_STATUS[program] || "Member"
+    : "—";
 
-  const status =
-    program
-      ? (
-          PERSONAL_STATUS[
-            program
-          ] || "Member"
-        )
-      : "—";
-
-  const benefits =
-    benefitsFor(
-      program
-    );
+  const benefits = benefitsFor(program);
 
   const promotion =
-    program ===
-    "MeliáRewards"
+    program === "MeliáRewards"
       ? 0.20
       : 0;
 
   const discounted =
-    safeTotal *
-    (1 - promotion);
+    safeTotal * (1 - promotion);
 
   const amex =
     amexFor(
@@ -1088,23 +935,17 @@ function enrich(hotel) {
   const amexTriggered =
     Boolean(
       amex &&
-      discounted >=
-        Number(
-          amex.spend || 0
-        )
+      discounted >= Number(amex.spend || 0)
     );
 
   const amexCredit =
     amexTriggered
-      ? Number(
-          amex.credit || 0
-        )
+      ? Number(amex.credit || 0)
       : 0;
 
   const effective =
     Math.max(
-      discounted -
-        amexCredit,
+      discounted - amexCredit,
       0
     );
 
@@ -1113,70 +954,58 @@ function enrich(hotel) {
     ...cls,
 
     status,
-
     benefits,
 
-    total:
-      safeTotal,
-
-    nightly:
-      safeNightly,
+    total: safeTotal,
+    nightly: safeNightly,
 
     promotion,
 
     amex,
-
     amexTriggered,
-
     amexCredit,
 
     effective,
-
     effectiveNightly:
       effective / n
   };
 }
 
-/* ---------------------------------------------------------
-   SEARCH
---------------------------------------------------------- */
-
 async function searchLive() {
   const city =
-    $("city")
-      ?.value
-      .trim();
+    $("city")?.value.trim();
 
   const checkIn =
-    $("checkIn")
-      ?.value;
+    $("checkIn")?.value;
 
   const checkOut =
-    $("checkOut")
-      ?.value;
+    $("checkOut")?.value;
 
   const guests =
-    Number(
-      $("guests")
-        ?.value || 2
-    );
+    Number($("guests")?.value || 2);
 
   if (!city) {
-    alert(
-      "Please enter a city."
-    );
+    alert("Please enter a city.");
+    $("city")?.focus();
     return;
   }
 
   if (
     !checkIn ||
     !checkOut ||
-    new Date(checkOut) <=
-      new Date(checkIn)
+    checkOut <= checkIn
   ) {
     alert(
-      "Please choose valid check-in and check-out dates."
+      "Please choose a valid check-in and check-out date."
     );
+    return;
+  }
+
+  if (
+    !Number.isFinite(guests) ||
+    guests < 1
+  ) {
+    alert("Please enter at least 1 guest.");
     return;
   }
 
@@ -1185,16 +1014,8 @@ async function searchLive() {
       location: city,
       check_in: checkIn,
       check_out: checkOut,
-      adults: String(
-        guests
-      ),
+      adults: String(guests),
       currency: "EUR",
-
-      /*
-      3 pages = up to roughly
-      60 Google Hotels results.
-      */
-
       pages: "3"
     });
 
@@ -1203,8 +1024,10 @@ async function searchLive() {
 
   if (button) {
     button.disabled = true;
+    button.dataset.originalText =
+      button.textContent;
     button.textContent =
-      "Searching...";
+      "Searching…";
   }
 
   try {
@@ -1214,29 +1037,23 @@ async function searchLive() {
         {
           method: "GET",
           headers: {
-            Accept:
-              "application/json"
+            Accept: "application/json"
           }
         }
       );
 
-    const contentType =
-      response.headers.get(
-        "content-type"
-      ) || "";
+    const text =
+      await response.text();
 
-    if (
-      !contentType.includes(
-        "application/json"
-      )
-    ) {
+    let payload;
+
+    try {
+      payload = JSON.parse(text);
+    } catch {
       throw new Error(
-        `API returned ${response.status}. Expected JSON.`
+        `API returned ${response.status}, not JSON.`
       );
     }
-
-    const payload =
-      await response.json();
 
     if (
       !response.ok ||
@@ -1250,9 +1067,7 @@ async function searchLive() {
     }
 
     const rawHotels =
-      extractHotels(
-        payload
-      );
+      extractHotels(payload);
 
     liveHotels =
       rawHotels.map(
@@ -1268,13 +1083,11 @@ async function searchLive() {
 
       pagesFetched:
         Number(
-          payload?.pages_fetched ||
-          1
+          payload?.pages_fetched || 1
         )
     };
 
-    searchPerformed =
-      true;
+    searchPerformed = true;
 
     render();
 
@@ -1292,20 +1105,15 @@ async function searchLive() {
     if (button) {
       button.disabled = false;
       button.textContent =
+        button.dataset.originalText ||
         "Search";
     }
   }
 }
 
-/* ---------------------------------------------------------
-   AMENITY UI
---------------------------------------------------------- */
-
 function amenityChip(name) {
   const key =
-    Object.keys(
-      AMENITY_ICON
-    ).find(
+    Object.keys(AMENITY_ICON).find(
       item =>
         String(name)
           .toLowerCase()
@@ -1321,19 +1129,11 @@ function amenityChip(name) {
 
   return `
     <span class="amenity-chip">
-      <span class="amenity-icon-text">
-        ${icon}
-      </span>
-      <span>
-        ${escapeHtml(name)}
-      </span>
+      <span class="amenity-icon-text">${icon}</span>
+      <span>${escapeHtml(name)}</span>
     </span>
   `;
 }
-
-/* ---------------------------------------------------------
-   FILTERS
---------------------------------------------------------- */
 
 function selectedProgramFilters() {
   return new Set(
@@ -1342,8 +1142,7 @@ function selectedProgramFilters() {
         'input.program-filter:checked, input[data-filter="program"]:checked'
       )
     ].map(
-      input =>
-        input.value
+      input => input.value
     )
   );
 }
@@ -1355,34 +1154,22 @@ function selectedAmenityFilters() {
         'input.amenity-filter:checked, input[data-filter="amenity"]:checked'
       )
     ].map(
-      input =>
-        input.value
+      input => input.value
     )
   );
 }
 
-/* ---------------------------------------------------------
-   RENDER
---------------------------------------------------------- */
-
 function render() {
-  const n =
-    nights();
+  const n = nights();
 
   let hotels =
-    liveHotels.map(
-      enrich
-    );
+    liveHotels.map(enrich);
 
-  if (
-    state.chain !==
-    "all"
-  ) {
+  if (state.chain !== "all") {
     hotels =
       hotels.filter(
         hotel =>
-          hotel.chain ===
-          state.chain
+          hotel.chain === state.chain
       );
   }
 
@@ -1392,32 +1179,33 @@ function render() {
   const activeAmenities =
     selectedAmenityFilters();
 
-  if (
-    activePrograms.size
-  ) {
+  /*
+    IMPORTANT:
+    Program filters must compare
+    hotel.program, not hotel.chain.
+  */
+  if (activePrograms.size) {
     hotels =
       hotels.filter(
         hotel =>
+          hotel.program &&
           activePrograms.has(
-            hotel.chain
+            hotel.program
           )
       );
   }
 
-  if (
-    activeAmenities.size
-  ) {
+  if (activeAmenities.size) {
     hotels =
       hotels.filter(
         hotel => {
           const all =
-            hotel.amenities
-              .map(
-                amenity =>
-                  String(
-                    amenity
-                  ).toLowerCase()
-              );
+            hotel.amenities.map(
+              amenity =>
+                String(
+                  amenity
+                ).toLowerCase()
+            );
 
           return [
             ...activeAmenities
@@ -1436,10 +1224,7 @@ function render() {
       );
   }
 
-  if (
-    $("onlyBenefits")
-      ?.checked
-  ) {
+  if ($("onlyBenefits")?.checked) {
     hotels =
       hotels.filter(
         hotel =>
@@ -1448,10 +1233,7 @@ function render() {
       );
   }
 
-  if (
-    $("onlyOffers")
-      ?.checked
-  ) {
+  if ($("onlyOffers")?.checked) {
     hotels =
       hotels.filter(
         hotel =>
@@ -1460,12 +1242,7 @@ function render() {
       );
   }
 
-  /* SORT */
-
-  if (
-    state.sort ===
-    "effective"
-  ) {
+  if (state.sort === "effective") {
     hotels.sort(
       (a, b) =>
         a.effective -
@@ -1473,10 +1250,7 @@ function render() {
     );
   }
 
-  if (
-    state.sort ===
-    "rating"
-  ) {
+  if (state.sort === "rating") {
     hotels.sort(
       (a, b) =>
         (b.rating || 0) -
@@ -1484,10 +1258,7 @@ function render() {
     );
   }
 
-  if (
-    state.sort ===
-    "benefits"
-  ) {
+  if (state.sort === "benefits") {
     hotels.sort(
       (a, b) =>
         b.benefits.length -
@@ -1495,67 +1266,50 @@ function render() {
     );
   }
 
-  if (
-    state.sort ===
-    "value"
-  ) {
+  if (state.sort === "value") {
     hotels.sort(
       (a, b) => {
         const valueA =
           (a.rating || 0) +
-          a.benefits.length *
-            0.15 +
-          (a.promotion
-            ? 0.2
-            : 0);
+          a.benefits.length * 0.15 +
+          (a.promotion ? 0.2 : 0) +
+          (a.amexTriggered ? 0.3 : 0);
 
         const valueB =
           (b.rating || 0) +
-          b.benefits.length *
-            0.15 +
-          (b.promotion
-            ? 0.2
-            : 0);
+          b.benefits.length * 0.15 +
+          (b.promotion ? 0.2 : 0) +
+          (b.amexTriggered ? 0.3 : 0);
 
-        return (
-          valueB -
-          valueA
-        );
+        return valueB - valueA;
       }
     );
   }
 
-  if (
-    $("resultTitle")
-  ) {
-    $("resultTitle")
-      .textContent =
+  if ($("resultTitle")) {
+    $("resultTitle").textContent =
       `Hotels in ${
-        $("city")
-          ?.value
-          ?.trim() ||
+        $("city")?.value.trim() ||
         "your city"
       }`;
   }
 
   if (!searchPerformed) {
     if ($("resultMeta")) {
-      $("resultMeta")
-        .textContent =
+      $("resultMeta").textContent =
         "Choose your dates and search for live hotels.";
     }
 
     if ($("results")) {
-      $("results")
-        .innerHTML = "";
+      $("results").innerHTML = "";
     }
 
     if ($("emptyState")) {
-      $("emptyState")
-        .style.display =
+      $("emptyState").style.display =
         "block";
     }
 
+    updateFilterCount();
     return;
   }
 
@@ -1566,12 +1320,10 @@ function render() {
     );
 
   if ($("resultMeta")) {
-    $("resultMeta")
-      .textContent =
+    $("resultMeta").textContent =
       `${hotels.length} shown` +
       (
-        apiFound >
-        hotels.length
+        apiFound > hotels.length
           ? ` · ${apiFound} found`
           : ""
       ) +
@@ -1581,29 +1333,24 @@ function render() {
       ` – ${formatDate(
         $("checkOut").value
       )}` +
-      ` · ${n} nights` +
-      ` · ${
-        $("guests").value
-      } guests` +
+      ` · ${n} night${n === 1 ? "" : "s"}` +
+      ` · ${$("guests")?.value || 2} guests` +
       ` · Live Google Hotels`;
   }
 
   if (!hotels.length) {
     if ($("results")) {
-      $("results")
-        .innerHTML = "";
+      $("results").innerHTML = "";
     }
 
     if ($("emptyState")) {
-      $("emptyState")
-        .style.display =
+      $("emptyState").style.display =
         "block";
 
       const text =
-        $("emptyState")
-          .querySelector(
-            "p:last-child"
-          );
+        $("emptyState").querySelector(
+          "p:last-child"
+        );
 
       if (text) {
         text.textContent =
@@ -1616,17 +1363,20 @@ function render() {
   }
 
   if ($("emptyState")) {
-    $("emptyState")
-      .style.display =
+    $("emptyState").style.display =
       "none";
+  }
+
+  if (!$("results")) {
+    updateFilterCount();
+    return;
   }
 
   $("results").innerHTML =
     hotels.map(
       hotel => {
         const benefits =
-          hotel.benefits ||
-          [];
+          hotel.benefits || [];
 
         const selectedBenefits =
           benefits
@@ -1673,16 +1423,12 @@ function render() {
             `;
 
         const rating =
-          hotel.rating
+          hotel.rating != null
             ? `
-              ⭐ ${hotel.rating.toFixed(
-                1
-              )}
+              ⭐ ${hotel.rating.toFixed(1)}
               ${
                 hotel.reviewCount
-                  ? `(${hotel.reviewCount.toLocaleString(
-                      "en-GB"
-                    )})`
+                  ? `(${hotel.reviewCount.toLocaleString("en-GB")})`
                   : ""
               }
             `
@@ -1692,14 +1438,13 @@ function render() {
           hotel.stars
             ? "★".repeat(
                 Math.min(
-                  hotel.stars,
+                  Math.round(hotel.stars),
                   5
                 )
               )
             : "";
 
-        const booking =
-          `
+        const booking = `
           <button
             class="view-button booking-button"
             type="button"
@@ -1707,13 +1452,15 @@ function render() {
               hotel.name
             )}"
             data-book-location="${escapeHtml(
-              $("city")?.value ||
-              ""
+              $("city")?.value || ""
+            )}"
+            data-book-url="${escapeHtml(
+              hotel.booking_url || ""
             )}"
           >
             View / compare
           </button>
-          `;
+        `;
 
         return `
           <article class="hotel">
@@ -1777,14 +1524,10 @@ function render() {
 
               <div class="hotel-amenities">
 
-                ${
-                  hotel.amenities
-                    .slice(0, 8)
-                    .map(
-                      amenityChip
-                    )
-                    .join("")
-                }
+                ${hotel.amenities
+                  .slice(0, 8)
+                  .map(amenityChip)
+                  .join("")}
 
               </div>
 
@@ -1873,10 +1616,6 @@ function render() {
   updateFilterCount();
 }
 
-/* ---------------------------------------------------------
-   FILTER COUNT
---------------------------------------------------------- */
-
 function updateFilterCount() {
   const programChecks =
     document.querySelectorAll(
@@ -1891,14 +1630,12 @@ function updateFilterCount() {
   const extras =
     Number(
       Boolean(
-        $("onlyBenefits")
-          ?.checked
+        $("onlyBenefits")?.checked
       )
     ) +
     Number(
       Boolean(
-        $("onlyOffers")
-          ?.checked
+        $("onlyOffers")?.checked
       )
     );
 
@@ -1907,45 +1644,30 @@ function updateFilterCount() {
     amenityChecks +
     extras;
 
-  if (
-    $("activeFilterCount")
-  ) {
-    $("activeFilterCount")
-      .textContent =
+  if ($("activeFilterCount")) {
+    $("activeFilterCount").textContent =
       count
-        ? `${count} filter${
-            count === 1
-              ? ""
-              : "s"
-          } active`
+        ? `${count} filter${count === 1 ? "" : "s"} active`
         : "No filters";
   }
 }
-
-/* ---------------------------------------------------------
-   STATUS FIELDS
---------------------------------------------------------- */
 
 function buildStatusFields() {
   const container =
     $("statusFields");
 
-  if (!container)
-    return;
+  if (!container) return;
 
   container.innerHTML =
     Object.entries(
       LOYALTY_PROGRAMS
     )
       .map(
-        ([program, statuses]) =>
-          `
+        ([program, statuses]) => `
           <div class="status-row">
 
             <span class="status-name">
-              ${escapeHtml(
-                program
-              )}
+              ${escapeHtml(program)}
             </span>
 
             <select
@@ -1956,8 +1678,7 @@ function buildStatusFields() {
 
               ${statuses
                 .map(
-                  status =>
-                    `
+                  status => `
                     <option
                       value="${escapeHtml(
                         status
@@ -1971,18 +1692,16 @@ function buildStatusFields() {
                           : ""
                       }
                     >
-                      ${escapeHtml(
-                        status
-                      )}
+                      ${escapeHtml(status)}
                     </option>
-                    `
+                  `
                 )
                 .join("")}
 
             </select>
 
           </div>
-          `
+        `
       )
       .join("");
 
@@ -1996,10 +1715,8 @@ function buildStatusFields() {
           "change",
           () => {
             PERSONAL_STATUS[
-              select.dataset
-                .programStatus
-            ] =
-              select.value;
+              select.dataset.programStatus
+            ] = select.value;
 
             render();
           }
@@ -2008,30 +1725,22 @@ function buildStatusFields() {
     );
 }
 
-/* ---------------------------------------------------------
-   POINTS
---------------------------------------------------------- */
-
 function buildPointsFields() {
   const container =
     $("pointsFields");
 
-  if (!container)
-    return;
+  if (!container) return;
 
   container.innerHTML =
     Object.keys(
       LOYALTY_PROGRAMS
     )
       .map(
-        program =>
-          `
+        program => `
           <div class="status-row">
 
             <span class="status-name">
-              ${escapeHtml(
-                program
-              )}
+              ${escapeHtml(program)}
             </span>
 
             <input
@@ -2039,9 +1748,7 @@ function buildPointsFields() {
               min="0"
               step="1000"
               value="${
-                PERSONAL_POINTS[
-                  program
-                ]
+                PERSONAL_POINTS[program]
               }"
               data-program-points="${escapeHtml(
                 program
@@ -2049,7 +1756,7 @@ function buildPointsFields() {
             >
 
           </div>
-          `
+        `
       )
       .join("");
 
@@ -2063,34 +1770,25 @@ function buildPointsFields() {
           "input",
           () => {
             PERSONAL_POINTS[
-              input.dataset
-                .programPoints
+              input.dataset.programPoints
             ] =
-              Number(
-                input.value
-              ) || 0;
+              Number(input.value) || 0;
           }
         );
       }
     );
 }
 
-/* ---------------------------------------------------------
-   AMEX FIELDS
---------------------------------------------------------- */
-
 function buildAmexFields() {
   const container =
     $("amexFields");
 
-  if (!container)
-    return;
+  if (!container) return;
 
   container.innerHTML =
     amexOffers
       .map(
-        (offer, index) =>
-          `
+        (offer, index) => `
           <div class="amex-row">
 
             <input
@@ -2132,7 +1830,7 @@ function buildAmexFields() {
             </button>
 
           </div>
-          `
+        `
       )
       .join("");
 
@@ -2145,13 +1843,15 @@ function buildAmexFields() {
         element.addEventListener(
           "input",
           () => {
-            amexOffers[
+            const index =
               Number(
-                element.dataset
-                  .amexName
-              )
-            ].name =
-              element.value;
+                element.dataset.amexName
+              );
+
+            if (amexOffers[index]) {
+              amexOffers[index].name =
+                element.value;
+            }
 
             render();
           }
@@ -2168,15 +1868,15 @@ function buildAmexFields() {
         element.addEventListener(
           "input",
           () => {
-            amexOffers[
+            const index =
               Number(
-                element.dataset
-                  .amexSpend
-              )
-            ].spend =
-              Number(
-                element.value
-              ) || 0;
+                element.dataset.amexSpend
+              );
+
+            if (amexOffers[index]) {
+              amexOffers[index].spend =
+                Number(element.value) || 0;
+            }
 
             render();
           }
@@ -2193,15 +1893,15 @@ function buildAmexFields() {
         element.addEventListener(
           "input",
           () => {
-            amexOffers[
+            const index =
               Number(
-                element.dataset
-                  .amexCredit
-              )
-            ].credit =
-              Number(
-                element.value
-              ) || 0;
+                element.dataset.amexCredit
+              );
+
+            if (amexOffers[index]) {
+              amexOffers[index].credit =
+                Number(element.value) || 0;
+            }
 
             render();
           }
@@ -2220,8 +1920,7 @@ function buildAmexFields() {
           () => {
             amexOffers.splice(
               Number(
-                button.dataset
-                  .removeAmex
+                button.dataset.removeAmex
               ),
               1
             );
@@ -2234,28 +1933,21 @@ function buildAmexFields() {
     );
 }
 
-/* ---------------------------------------------------------
-   BOOKING MODAL
---------------------------------------------------------- */
-
 function closeBookingModal() {
   document
-    .getElementById(
-      "bookingModal"
-    )
+    .getElementById("bookingModal")
     ?.remove();
 }
 
 function openBookingModal(
   hotelName,
-  location
+  location,
+  directUrl = ""
 ) {
   closeBookingModal();
 
   const modal =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
   modal.id =
     "bookingModal";
@@ -2283,9 +1975,7 @@ function openBookingModal(
           </p>
 
           <h2>
-            ${escapeHtml(
-              hotelName
-            )}
+            ${escapeHtml(hotelName)}
           </h2>
         </div>
 
@@ -2298,6 +1988,24 @@ function openBookingModal(
         </button>
 
       </div>
+
+      ${
+        directUrl
+          ? `
+            <div class="booking-links">
+              <a
+                class="booking-link"
+                href="${escapeHtml(directUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>Google Hotels / booking</span>
+                <span>↗</span>
+              </a>
+            </div>
+          `
+          : ""
+      }
 
       <p
         id="bookingLoading"
@@ -2314,29 +2022,46 @@ function openBookingModal(
     </div>
   `;
 
-  document.body.appendChild(
-    modal
-  );
+  document.body.appendChild(modal);
+
+  if (directUrl) {
+    const loading =
+      document.getElementById(
+        "bookingLoading"
+      );
+
+    if (loading) {
+      loading.style.display = "none";
+    }
+  }
 
   const params =
     new URLSearchParams({
-      hotel_name:
-        hotelName,
-      location:
-        location || ""
+      hotel_name: hotelName,
+      location: location || ""
     });
 
   fetch(
     `/api/links?${params.toString()}`,
     {
       headers: {
-        Accept:
-          "application/json"
+        Accept: "application/json"
       }
     }
   )
     .then(
       async response => {
+        const contentType =
+          response.headers.get(
+            "content-type"
+          ) || "";
+
+        if (!contentType.includes("json")) {
+          throw new Error(
+            "Booking links API did not return JSON."
+          );
+        }
+
         const data =
           await response.json();
 
@@ -2353,129 +2078,106 @@ function openBookingModal(
         return data;
       }
     )
-    .then(
-      data => {
-        const loading =
-          document.getElementById(
-            "bookingLoading"
-          );
+    .then(data => {
+      const loading =
+        document.getElementById(
+          "bookingLoading"
+        );
 
-        const container =
-          document.getElementById(
-            "bookingLinks"
-          );
+      const container =
+        document.getElementById(
+          "bookingLinks"
+        );
 
-        if (loading) {
-          loading.style.display =
-            "none";
-        }
+      if (loading) {
+        loading.style.display =
+          "none";
+      }
 
-        const labels = {
-          booking_com:
-            "Booking.com",
-          expedia:
-            "Expedia",
-          hotels_com:
-            "Hotels.com",
-          agoda:
-            "Agoda",
-          tripadvisor:
-            "Tripadvisor",
-          kayak:
-            "KAYAK",
-          priceline:
-            "Priceline",
-          marriott:
-            "Marriott",
-          hilton:
-            "Hilton",
-          ihg:
-            "IHG",
-          official_website:
-            "Official website"
-        };
+      if (!container) return;
 
-        const links =
-          Object.entries(
-            data?.links || {}
-          ).filter(
-            ([, value]) =>
-              typeof value ===
-                "string" &&
-              value.startsWith(
-                "http"
-              )
-          );
+      const labels = {
+        booking_com: "Booking.com",
+        expedia: "Expedia",
+        hotels_com: "Hotels.com",
+        agoda: "Agoda",
+        tripadvisor: "Tripadvisor",
+        kayak: "KAYAK",
+        priceline: "Priceline",
+        marriott: "Marriott",
+        hilton: "Hilton",
+        ihg: "IHG",
+        official_website:
+          "Official website"
+      };
 
-        if (!links.length) {
-          container.innerHTML =
-            `
+      const links =
+        Object.entries(
+          data?.links || {}
+        ).filter(
+          ([, value]) =>
+            typeof value === "string" &&
+            /^https?:\/\//i.test(value)
+        );
+
+      if (!links.length) {
+        if (!directUrl) {
+          container.innerHTML = `
             <p class="booking-empty">
               No booking platform links were returned.
             </p>
-            `;
-
-          return;
+          `;
         }
 
-        container.innerHTML =
-          links
-            .map(
-              ([key, value]) =>
-                `
-                <a
-                  class="booking-link"
-                  href="${escapeHtml(
-                    value
-                  )}"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <span>
-                    ${escapeHtml(
-                      labels[key] ||
-                      key
-                    )}
-                  </span>
-
-                  <span>
-                    ↗
-                  </span>
-                </a>
-                `
-            )
-            .join("");
+        return;
       }
-    )
-    .catch(
-      error => {
-        const loading =
-          document.getElementById(
-            "bookingLoading"
-          );
 
-        const container =
-          document.getElementById(
-            "bookingLinks"
-          );
+      container.innerHTML =
+        links
+          .map(
+            ([key, value]) => `
+              <a
+                class="booking-link"
+                href="${escapeHtml(value)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>
+                  ${escapeHtml(
+                    labels[key] || key
+                  )}
+                </span>
 
-        if (loading) {
-          loading.style.display =
-            "none";
-        }
-
-        if (container) {
-          container.innerHTML =
+                <span>↗</span>
+              </a>
             `
-            <p class="booking-empty">
-              ${escapeHtml(
-                error.message
-              )}
-            </p>
-            `;
-        }
+          )
+          .join("");
+    })
+    .catch(error => {
+      const loading =
+        document.getElementById(
+          "bookingLoading"
+        );
+
+      const container =
+        document.getElementById(
+          "bookingLinks"
+        );
+
+      if (loading) {
+        loading.style.display =
+          "none";
       }
-    );
+
+      if (container && !directUrl) {
+        container.innerHTML = `
+          <p class="booking-empty">
+            ${escapeHtml(error.message)}
+          </p>
+        `;
+      }
+    });
 }
 
 function setupBookingButtons() {
@@ -2489,10 +2191,9 @@ function setupBookingButtons() {
 
       if (button) {
         openBookingModal(
-          button.dataset
-            .bookHotel,
-          button.dataset
-            .bookLocation
+          button.dataset.bookHotel,
+          button.dataset.bookLocation,
+          button.dataset.bookUrl
         );
 
         return;
@@ -2507,295 +2208,326 @@ function setupBookingButtons() {
       }
     }
   );
+
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (event.key === "Escape") {
+        closeBookingModal();
+      }
+    }
+  );
 }
 
-/* ---------------------------------------------------------
-   SETUP
---------------------------------------------------------- */
-
 function setup() {
-  setDefaultDates();
+  /*
+    Always start with TODAY -> TOMORROW.
+  */
+  setDefaultDates(true);
 
-  if (
-    $("onlyBenefits")
-  ) {
-    $("onlyBenefits")
-      .checked = false;
+  if ($("onlyBenefits")) {
+    $("onlyBenefits").checked = false;
   }
 
-  if (
-    $("onlyOffers")
-  ) {
-    $("onlyOffers")
-      .checked = false;
+  if ($("onlyOffers")) {
+    $("onlyOffers").checked = false;
   }
 
-  $("searchButton")
-    ?.addEventListener(
+  const searchButton =
+    $("searchButton");
+
+  if (searchButton) {
+    searchButton.addEventListener(
       "click",
       searchLive
     );
+  }
 
-  $("sort")
-    ?.addEventListener(
-      "change",
-      event => {
-        state.sort =
-          event.target.value;
+  /*
+    Search also works with ENTER.
+  */
+  ["city", "checkIn", "checkOut", "guests"].forEach(
+    id => {
+      $(id)?.addEventListener(
+        "keydown",
+        event => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            searchLive();
+          }
+        }
+      );
+    }
+  );
 
-        render();
-      }
-    );
+  $("sort")?.addEventListener(
+    "change",
+    event => {
+      state.sort =
+        event.target.value ||
+        "effective";
 
+      render();
+    }
+  );
+
+  /*
+    Chain buttons.
+  */
   document
-    .querySelectorAll(
-      ".filter"
-    )
-    .forEach(
-      button => {
-        button.addEventListener(
-          "click",
-          () => {
-            document
-              .querySelectorAll(
-                ".filter"
-              )
-              .forEach(
-                item =>
-                  item.classList.remove(
-                    "active"
-                  )
-              );
-
-            button.classList.add(
-              "active"
+    .querySelectorAll(".filter")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => {
+          document
+            .querySelectorAll(".filter")
+            .forEach(item =>
+              item.classList.remove("active")
             );
 
-            state.chain =
-              button.dataset
-                .chain ||
-              "all";
+          button.classList.add("active");
 
-            render();
-          }
+          state.chain =
+            button.dataset.chain ||
+            "all";
+
+          render();
+        }
+      );
+    }
+  );
+
+  /*
+    Open filter drawer.
+  */
+  $("openFilters")?.addEventListener(
+    "click",
+    () => {
+      $("filterDrawer")
+        ?.classList.add("open");
+
+      $("filterDrawer")
+        ?.setAttribute(
+          "aria-hidden",
+          "false"
         );
-      }
-    );
+    }
+  );
 
-  $("openFilters")
-    ?.addEventListener(
-      "click",
-      () => {
+  /*
+    Close filter drawer.
+  */
+  $("closeFilters")?.addEventListener(
+    "click",
+    () => {
+      $("filterDrawer")
+        ?.classList.remove("open");
+
+      $("filterDrawer")
+        ?.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+    }
+  );
+
+  /*
+    Close drawer by clicking backdrop.
+  */
+  $("filterDrawer")?.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target ===
         $("filterDrawer")
-          ?.classList.add(
-            "open"
-          );
+      ) {
+        $("filterDrawer")
+          .classList.remove("open");
 
         $("filterDrawer")
-          ?.setAttribute(
-            "aria-hidden",
-            "false"
-          );
-      }
-    );
-
-  $("closeFilters")
-    ?.addEventListener(
-      "click",
-      () => {
-        $("filterDrawer")
-          ?.classList.remove(
-            "open"
-          );
-
-        $("filterDrawer")
-          ?.setAttribute(
+          .setAttribute(
             "aria-hidden",
             "true"
           );
       }
-    );
+    }
+  );
 
+  /*
+    PROGRAM FILTERS
+  */
   document
     .querySelectorAll(
       'input.program-filter, input[data-filter="program"]'
     )
-    .forEach(
-      input => {
-        input.addEventListener(
-          "change",
-          () => {
-            if (
-              input.checked
-            ) {
-              state.activePrograms.add(
-                input.value
-              );
-            } else {
-              state.activePrograms.delete(
-                input.value
-              );
-            }
-
-            updateFilterCount();
-            render();
+    .forEach(input => {
+      input.addEventListener(
+        "change",
+        () => {
+          if (input.checked) {
+            state.activePrograms.add(
+              input.value
+            );
+          } else {
+            state.activePrograms.delete(
+              input.value
+            );
           }
-        );
-      }
-    );
 
+          updateFilterCount();
+          render();
+        }
+      );
+    });
+
+  /*
+    AMENITY FILTERS
+  */
   document
     .querySelectorAll(
       'input.amenity-filter, input[data-filter="amenity"]'
     )
-    .forEach(
-      input => {
-        input.addEventListener(
-          "change",
-          () => {
-            if (
-              input.checked
-            ) {
-              state.amenities.add(
-                input.value
-              );
-            } else {
-              state.amenities.delete(
-                input.value
-              );
-            }
-
-            updateFilterCount();
-            render();
+    .forEach(input => {
+      input.addEventListener(
+        "change",
+        () => {
+          if (input.checked) {
+            state.amenities.add(
+              input.value
+            );
+          } else {
+            state.amenities.delete(
+              input.value
+            );
           }
+
+          updateFilterCount();
+          render();
+        }
+      );
+    });
+
+  $("onlyBenefits")?.addEventListener(
+    "change",
+    () => {
+      updateFilterCount();
+      render();
+    }
+  );
+
+  $("onlyOffers")?.addEventListener(
+    "change",
+    () => {
+      updateFilterCount();
+      render();
+    }
+  );
+
+  /*
+    Apply filters.
+  */
+  $("applyFilters")?.addEventListener(
+    "click",
+    () => {
+      render();
+
+      $("filterDrawer")
+        ?.classList.remove("open");
+
+      $("filterDrawer")
+        ?.setAttribute(
+          "aria-hidden",
+          "true"
         );
-      }
-    );
+    }
+  );
 
-  $("onlyBenefits")
-    ?.addEventListener(
-      "change",
-      () => {
-        updateFilterCount();
-        render();
-      }
-    );
-
-  $("onlyOffers")
-    ?.addEventListener(
-      "change",
-      () => {
-        updateFilterCount();
-        render();
-      }
-    );
-
-  $("applyFilters")
-    ?.addEventListener(
-      "click",
-      () => {
-        render();
-
-        $("filterDrawer")
-          ?.classList.remove(
-            "open"
-          );
-
-        $("filterDrawer")
-          ?.setAttribute(
-            "aria-hidden",
-            "true"
-          );
-      }
-    );
-
-  $("resetFilters")
-    ?.addEventListener(
-      "click",
-      () => {
-        document
-          .querySelectorAll(
-            'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"]'
-          )
-          .forEach(
-            input => {
-              input.checked =
-                false;
-            }
-          );
-
-        if (
-          $("onlyBenefits")
-        ) {
-          $("onlyBenefits")
-            .checked =
-            false;
-        }
-
-        if (
-          $("onlyOffers")
-        ) {
-          $("onlyOffers")
-            .checked =
-            false;
-        }
-
-        state.chain =
-          "all";
-
-        state.activePrograms
-          .clear();
-
-        state.amenities
-          .clear();
-
-        document
-          .querySelectorAll(
-            ".filter"
-          )
-          .forEach(
-            button =>
-              button.classList.remove(
-                "active"
-              )
-          );
-
-        updateFilterCount();
-        render();
-      }
-    );
-
-  $("addAmex")
-    ?.addEventListener(
-      "click",
-      () => {
-        amexOffers.push({
-          name: "",
-          spend: 0,
-          credit: 0
+  /*
+    Reset filters.
+  */
+  $("resetFilters")?.addEventListener(
+    "click",
+    () => {
+      document
+        .querySelectorAll(
+          'input.program-filter, input.amenity-filter, input[data-filter="program"], input[data-filter="amenity"]'
+        )
+        .forEach(input => {
+          input.checked = false;
         });
 
-        buildAmexFields();
+      if ($("onlyBenefits")) {
+        $("onlyBenefits").checked =
+          false;
       }
-    );
 
+      if ($("onlyOffers")) {
+        $("onlyOffers").checked =
+          false;
+      }
+
+      state.chain = "all";
+      state.activePrograms.clear();
+      state.amenities.clear();
+
+      document
+        .querySelectorAll(".filter")
+        .forEach(button =>
+          button.classList.remove(
+            "active"
+          )
+        );
+
+      const allButton =
+        document.querySelector(
+          '.filter[data-chain="all"]'
+        );
+
+      allButton?.classList.add(
+        "active"
+      );
+
+      updateFilterCount();
+      render();
+    }
+  );
+
+  /*
+    Add Amex offer.
+  */
+  $("addAmex")?.addEventListener(
+    "click",
+    () => {
+      amexOffers.push({
+        name: "",
+        spend: 0,
+        credit: 0
+      });
+
+      buildAmexFields();
+    }
+  );
+
+  /*
+    Booking buttons use event delegation
+    because hotel cards are rendered dynamically.
+  */
   setupBookingButtons();
 
   buildStatusFields();
   buildPointsFields();
   buildAmexFields();
-  updateFilterCount();
 
+  updateFilterCount();
   render();
 }
 
-if (
-  document.readyState ===
-  "loading"
-) {
+if (document.readyState === "loading") {
   document.addEventListener(
     "DOMContentLoaded",
-    setup
+    setup,
+    { once: true }
   );
 } else {
   setup();
