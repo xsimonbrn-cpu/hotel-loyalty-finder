@@ -292,37 +292,165 @@ function normalizeAmenities(hotel) {
 }
 
 function normalizeHotel(hotel) {
-  const pricing = hotel?.price || hotel?.pricing || {};
-  const total = number(first(pricing, ["total", "current", "amount"]));
-  const nightly = number(first(pricing, ["price_per_night", "nightly", "nightly_price"]));
+  const price = hotel?.price || {};
+  const location = hotel?.location || {};
+  const rating = hotel?.rating || {};
 
-  let image = first(hotel, ["image", "image_url", "photo"]);
-  const images = hotel?.images || hotel?.photos || [];
-  if (!image && Array.isArray(images) && images.length) {
-    image = typeof images[0] === "string"
-      ? images[0]
-      : first(images[0], ["url", "src", "image_url"]);
+  const totalRaw =
+    price.total_price ??
+    price.total ??
+    price.current ??
+    null;
+
+  const nightlyRaw =
+    price.price_per_night ??
+    price.nightly ??
+    null;
+
+  let total = toNumber(totalRaw);
+  let nightly = toNumber(nightlyRaw);
+
+  const images =
+    Array.isArray(hotel?.images)
+      ? hotel.images
+      : [];
+
+  let image =
+    images.length
+      ? (
+          typeof images[0] === "string"
+            ? images[0]
+            : first(images[0], ["url", "src", "image_url"])
+        )
+      : null;
+
+  if (!image) {
+    image =
+      first(
+        hotel,
+        [
+          "image",
+          "image_url",
+          "photo",
+          "thumbnail"
+        ]
+      );
   }
 
   return {
     raw: hotel,
-    name: String(first(hotel, ["name", "hotel_name", "title"]) || "Unnamed hotel"),
+
+    id:
+      hotel?.hotel_id ??
+      null,
+
+    name:
+      String(
+        hotel?.name ??
+        "Unnamed hotel"
+      ),
+
     total,
+
     nightly,
+
     image,
-    rating: number(first(hotel, ["rating", "score", "review_score"])),
-    amenities: normalizeAmenities(hotel),
-    address: first(hotel, ["address", "hotel_address"]),
-    url: first(hotel, ["booking_url", "hotel_url", "url"])
+
+    rating:
+      toNumber(
+        rating?.value ??
+        hotel?.overall_rating ??
+        hotel?.rating_value ??
+        hotel?.score ??
+        hotel?.stars
+      ),
+
+    reviewCount:
+      toNumber(
+        rating?.votes ??
+        hotel?.reviews ??
+        hotel?.review_count
+      ),
+
+    stars:
+      toNumber(
+        hotel?.stars ??
+        hotel?.hotel_class ??
+        null
+      ),
+
+    amenities:
+      normalizeAmenities(
+        hotel
+      ),
+
+    address:
+      location?.address ??
+      hotel?.address ??
+      null,
+
+    latitude:
+      location?.latitude ??
+      location?.lat ??
+      hotel?.latitude ??
+      null,
+
+    longitude:
+      location?.longitude ??
+      location?.lng ??
+      location?.lon ??
+      hotel?.longitude ??
+      null,
+
+    url:
+      normalizeBookingUrl(
+        hotel?.booking_url ??
+        hotel?.hotel_url ??
+        hotel?.url ??
+        null
+      ),
+
+    isPaid:
+      Boolean(
+        hotel?.is_paid
+      )
   };
 }
 
+function normalizeBrandText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function classifyHotel(name) {
-  const text = String(name || "").toLowerCase();
+  const text = normalizeBrandText(name);
+
   for (const [needle, chain, brand, program] of PROGRAM_ALIASES) {
-    if (text.includes(needle)) return { chain, brand, program };
+    const normalizedNeedle =
+      normalizeBrandText(needle);
+
+    if (
+      normalizedNeedle &&
+      text.includes(normalizedNeedle)
+    ) {
+      return {
+        chain,
+        brand,
+        program
+      };
+    }
   }
-  return { chain: "Other", brand: "Other", program: null };
+
+  return {
+    chain: "Other",
+    brand: "Other",
+    program: null
+  };
 }
 
 function benefitsFor(program) {
@@ -453,6 +581,13 @@ function amenityChip(name) {
       <span>${escapeHtml(name)}</span>
     </span>
   `;
+}
+
+
+function showHotel(hotel) {
+  // Only display hotels that belong to one of the configured programs.
+  // This keeps unrelated properties out of the main loyalty search.
+  return Boolean(hotel.program);
 }
 
 function render() {
