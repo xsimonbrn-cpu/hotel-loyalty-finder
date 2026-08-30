@@ -1,5 +1,8 @@
-/* Cloudflare Pages Function: functions/api/hotels.js */
-const STAYAPI_URL = "https://api.stayapi.com/v1/google_hotels/search";
+/* Cloudflare Pages Function: functions/api/hotels.js
+   Free hotel discovery via OpenStreetMap. No StayAPI key is required. */
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+const USER_AGENT = "Hotel-Loyalty-Finder/1.0 (hotel discovery)";
 
 function headers() {
   return {
@@ -7,7 +10,7 @@ function headers() {
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store"
+    "Cache-Control": "public, max-age=900"
   };
 }
 
@@ -19,8 +22,45 @@ function validDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+function address(tags = {}) {
+  const street = [tags["addr:street"], tags["addr:housenumber"]].filter(Boolean).join(" ");
+  const place = [tags["addr:postcode"], tags["addr:city"]].filter(Boolean).join(" ");
+  return [street, place, tags["addr:country"]].filter(Boolean).join(", ") || null;
+}
+
+function amenities(tags = {}) {
+  const result = [];
+  const add = (name, condition) => { if (condition) result.push(name); };
+  add("Pool", /pool|swimming/i.test(`${tags.leisure || ""} ${tags["leisure:swimming_pool"] || ""} ${tags["contact:website"] || ""}`));
+  add("Spa", /spa/i.test(`${tags.spa || ""} ${tags.wellness || ""}`));
+  add("Fitness", /fitness|gym/i.test(`${tags.fitness_centre || ""} ${tags.gym || ""}`));
+  add("Breakfast", /yes|free|included/i.test(`${tags.breakfast || ""} ${tags["breakfast:included"] || ""}`));
+  add("Parking", /yes|surface|underground|multi-storey/i.test(String(tags.parking || tags["parking:condition"] || "")));
+  add("Restaurant", Boolean(tags.restaurant || tags["amenity:restaurant"]));
+  add("Bar", Boolean(tags.bar || tags["amenity:bar"]));
+  return result;
+}
+
+function normalizeElement(element) {
+  const tags = element.tags || {};
+  return {
+    hotel_id: `osm/${element.type}/${element.id}`,
+    name: tags.name || tags["name:en"] || "Unnamed hotel",
+    brand: tags.brand || tags.operator || tags["brand:wikidata"] || null,
+    chain: tags.operator || tags.brand || null,
+    location: { address: address(tags), latitude: element.lat ?? element.center?.lat ?? null, longitude: element.lon ?? element.center?.lon ?? null },
+    price: { current: null, total_price: null, currency: "EUR" },
+    rating: { value: null, votes: null },
+    stars: Number(tags.stars) || null,
+    amenities: amenities(tags),
+    images: tags.image ? [tags.image] : [],
+    booking_url: tags.website || tags["contact:website"] || null,
+    source: "OpenStreetMap"
+  };
+}
+
 export async function onRequest(context) {
-  const { request, env } = context;
+  const { request } = context;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: headers() });
   if (request.method !== "GET") return json({ error: "Method not allowed." }, 405);
 
@@ -28,30 +68,45 @@ export async function onRequest(context) {
   const location = incoming.searchParams.get("location")?.trim() || "";
   const checkIn = incoming.searchParams.get("check_in") || "";
   const checkOut = incoming.searchParams.get("check_out") || "";
-  const adults = Number(incoming.searchParams.get("adults") || "2");
-  const currency = (incoming.searchParams.get("currency") || "EUR").trim().toUpperCase();
-  const minRating = incoming.searchParams.get("min_rating");
-
   if (!location) return json({ error: "Missing required parameter: location." }, 400);
-  if (!validDate(checkIn) || !validDate(checkOut)) return json({ error: "check_in and check_out must use YYYY-MM-DD." }, 400);
-  if (checkOut <= checkIn) return json({ error: "check_out must be after check_in." }, 400);
-  if (!Number.isInteger(adults) || adults < 1 || adults > 10) return json({ error: "adults must be an integer between 1 and 10." }, 400);
-  if (!/^[A-Z]{3}$/.test(currency)) return json({ error: "currency must be a three-letter currency code." }, 400);
-  if (!env.STAYAPI_KEY) return json({ error: "STAYAPI_KEY is missing from the Cloudflare Pages environment variables." }, 500);
+  if (!validDate(checkIn) || !validDate(checkOut) || checkOut <= checkIn) return json({ error: "Please provide valid check-in and check-out dates." }, 400);
 
-  const params = new URLSearchParams({ location, check_in: checkIn, check_out: checkOut, adults: String(adults), currency });
-  if (minRating !== null && /^([1-4](\.\d+)?|5(\.0+)?)$/.test(minRating)) params.set("min_rating", minRating);
+  /* Cache identical city searches for 15 minutes; local filter changes do not
+     make a further request to either public OSM service. */
+  const cache = caches.default;
+  const cacheKey = new Request(incoming.toString(), { method: "GET" });
+  const cached = await cache.match(cacheKey);
+  if (cached) return new Response(cached.body, { status: 200, headers: headers() });
 
   try {
-    const upstream = await fetch(`${STAYAPI_URL}?${params}`, { headers: { "X-API-Key": env.STAYAPI_KEY, Accept: "application/json" } });
-    const text = await upstream.text();
-    let body;
-    try { body = JSON.parse(text); } catch { body = { error: "StayAPI returned a non-JSON response." }; }
-    if (!upstream.ok) return json({ error: body.error || body.message || `StayAPI request failed (${upstream.status}).`, details: body }, upstream.status);
+    const geocodeParams = new URLSearchParams({ q: location, format: "jsonv2", limit: "1", addressdetails: "0" });
+    const geocode = await fetch(`${NOMINATIM_URL}?${geocodeParams}`, { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } });
+    const places = await geocode.json();
+    if (!geocode.ok || !Array.isArray(places) || !places.length) return json({ error: `Location not found: ${location}.` }, 404);
+    const latitude = Number(places[0].lat);
+    const longitude = Number(places[0].lon);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return json({ error: `Location not found: ${location}.` }, 404);
 
-    /* Do not slice, map, or otherwise cap body.hotels here.  The entire documented response is passed through. */
-    return json(body);
+    /* Includes nodes, ways and relations; no result limit is requested. */
+    const query = `[out:json][timeout:45];(nwr["tourism"="hotel"](around:20000,${latitude},${longitude});nwr["tourism"="motel"](around:20000,${latitude},${longitude}););out center tags;`;
+    const response = await fetch(OVERPASS_URL, {
+      method: "POST",
+      headers: { "User-Agent": USER_AGENT, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+      body: new URLSearchParams({ data: query }).toString()
+    });
+    const body = await response.json();
+    if (!response.ok || !Array.isArray(body.elements)) return json({ error: "OpenStreetMap hotel search is temporarily unavailable." }, 502);
+
+    const seen = new Set();
+    const hotels = body.elements.map(normalizeElement).filter(hotel => {
+      const key = `${hotel.name}|${hotel.location.address || ""}`.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
+    const payload = { location, check_in: checkIn, check_out: checkOut, hotels, total_count: hotels.length, search_metadata: { source: "OpenStreetMap", pricing: "not included" } };
+    context.waitUntil(cache.put(cacheKey, new Response(JSON.stringify(payload), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=900" } })));
+    return json(payload);
   } catch (error) {
-    return json({ error: "Hotel search failed.", details: String(error?.message || error) }, 502);
+    return json({ error: "Free hotel search is temporarily unavailable.", details: String(error?.message || error) }, 502);
   }
 }
