@@ -1,83 +1,30 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
-  <title>S.M.B. HOTEL LOYALTY</title>
-  <link rel="icon" href="logo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff"><title>S.M.B. HOTEL LOYALTY</title><link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="#" aria-label="S.M.B. HOTEL LOYALTY">
-    <img src="logo.png" alt="">
-    <span><small>S.M.B.</small><strong>HOTEL LOYALTY</strong></span>
-  </a>
-  <nav class="topnav" aria-label="Main navigation">
-    <button data-scroll="searchSection">Search</button>
-    <button id="compareNav">Compare <b id="compareCount">0</b></button>
-    <button id="favoritesNav">Favorites <b id="favoriteCount">0</b></button>
-    <button id="accountNav">Account</button>
-  </nav>
-</header>
-
+<header class="topbar"><a class="brand" href="#" aria-label="S.M.B. HOTEL LOYALTY"><img src="logo.png" alt=""><span><small>S.M.B.</small><strong>HOTEL LOYALTY</strong></span></a><nav class="topnav"><button data-scroll="searchSection">Search</button><button id="compareNav">Compare <b id="compareCount">0</b></button><button id="favoritesNav">Favorites <b id="favoriteCount">0</b></button><button id="accountNav">Account</button></nav></header>
 <main class="app-shell">
-  <section class="hero">
-    <p class="eyebrow">YOUR STAY · YOUR STATUS · YOUR VALUE</p>
-    <h1>S.M.B. HOTEL LOYALTY</h1>
-    <p>Find hotels by live price, real hotel category, loyalty status, benefits and your own points.</p>
-  </section>
-
-  <section class="search-panel" id="searchSection">
-    <div class="search-grid">
-      <label>Destination<input id="city" value="Frankfurt" placeholder="City or hotel"></label>
-      <label>Check-in<input id="checkIn" type="date"></label>
-      <label>Check-out<input id="checkOut" type="date"></label>
-      <label>Guests<select id="guests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-      <button id="searchButton" class="primary">Search</button>
-    </div>
-    <div class="search-tools">
-      <button id="openFilters" class="secondary">Filters <span id="activeFilterCount">0</span></button>
-      <button id="mapToggle" class="secondary">Map</button>
-      <button id="saveDefaults" class="secondary">Save as default</button>
-      <span id="searchStatus"></span>
-    </div>
-  </section>
-
-  <section class="content-grid">
-    <div class="results-column">
-      <div class="results-head">
-        <div><p class="eyebrow">LIVE SEARCH</p><h2 id="resultTitle">Hotels</h2><p id="resultMeta"></p></div>
-        <label class="sort-control">Sort by<select id="sort"><option value="effective">Best value for you</option><option value="benefits">Best benefits</option><option value="rating">Highest rating</option><option value="price">Lowest price</option><option value="distance">Closest to centre</option></select></label>
-      </div>
-      <div id="results" class="results"></div>
-      <div id="emptyState" class="empty-state"><h3>Search for your stay</h3><p>Live Google Hotels results will appear here.</p></div>
-      <div id="pagination" class="pagination"></div>
-    </div>
-    <aside id="mapPanel" class="map-panel" aria-label="Hotel map"><div id="map"></div><div class="map-note">Hotel positions are supplied by the live hotel search.</div></aside>
-  </section>
+<section class="hero"><p class="eyebrow">YOUR STAY · YOUR STATUS · YOUR VALUE</p><h1>S.M.B. HOTEL LOYALTY</h1><p>Search cities, countries and regions. Compare live hotel prices with loyalty status, meaningful benefits, amenities and your own points.</p></section>
+<section class="search-panel" id="searchSection">
+<div class="search-grid"><label>Destination / region<input id="city" value="Frankfurt" placeholder="City, country or region — e.g. Germany or Europe"></label><label>Check-in<input id="checkIn" type="date"></label><label>Check-out<input id="checkOut" type="date"></label><label>Guests<select id="guests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label><button id="searchButton" class="primary">Search</button></div>
+<div class="search-tools"><button id="openFilters" class="secondary"><span class="filter-mark"></span> Filters <span id="activeFilterCount">0</span></button><button id="mapToggle" class="secondary">Map</button><button id="saveDefaults" class="secondary">Save defaults</button><span id="searchStatus"></span></div>
+</section>
+<section class="content-grid"><div class="results-column"><div class="results-head"><div><p class="eyebrow">LIVE SEARCH</p><h2 id="resultTitle">Hotels</h2><p id="resultMeta"></p></div><label class="sort-control">Sort by<select id="sort"><option value="effective">Best value for you</option><option value="benefits">Best benefits</option><option value="rating">Highest rating</option><option value="price">Lowest price</option><option value="distance">Closest to search centre</option></select></label></div><div id="results" class="results"></div><div id="emptyState" class="empty-state"><h3>Search for your stay</h3><p>Live Google Hotels results will appear here.</p></div><div id="pagination" class="pagination"></div></div><aside id="mapPanel" class="map-panel"><div class="map-head"><span>HOTEL MAP</span><button id="mapClose" class="map-close">×</button></div><div id="map"></div><div class="map-note">Live hotel positions · click a marker for details</div></aside></section>
 </main>
-
-<aside id="filterDrawer" class="drawer" aria-hidden="true">
-  <div class="drawer-head"><div><p class="eyebrow">REFINE</p><h2>Filters</h2></div><button id="closeFilters" class="icon-button">×</button></div>
-  <div class="drawer-section"><div class="drawer-label">Loyalty program</div><div id="programFilters" class="check-grid"></div></div>
-  <div class="drawer-section"><div class="drawer-label">Hotel stars</div><div class="star-filter-row"><button data-stars="0" class="star-filter active">Any</button><button data-stars="3">3★+</button><button data-stars="4">4★+</button><button data-stars="5">5★</button></div></div>
-  <div class="drawer-section"><div class="drawer-label">Amenities</div><div id="amenityFilters" class="check-grid"></div></div>
-  <div class="drawer-section"><div class="drawer-label">Distance from search centre</div><label class="range-label"><span>Up to <b id="radiusValue">25</b> km</span><input id="radius" type="range" min="1" max="100" value="25"></label></div>
-  <div class="drawer-section"><div class="drawer-label">Useful loyalty benefits</div><label class="check-control"><input id="onlyBenefits" type="checkbox"> Only hotels with meaningful benefits</label><label class="check-control"><input id="onlyOffers" type="checkbox"> Only hotels with a personal offer</label></div>
-  <div class="drawer-actions"><button id="resetFilters" class="secondary">Reset</button><button id="applyFilters" class="primary">Apply filters</button></div>
-</aside>
-
-<div id="compareDrawer" class="modal-root hidden"></div>
-<div id="accountModal" class="modal-root hidden"></div>
-<div id="bookingModal" class="modal-root hidden"></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="app.js"></script>
-</body>
-</html>
+<aside id="filterDrawer" class="drawer" aria-hidden="true"><div class="drawer-head"><div><p class="eyebrow">REFINE SEARCH</p><h2>Filters</h2></div><button id="closeFilters" class="icon-button">×</button></div>
+<div class="drawer-section"><div class="drawer-label">Loyalty programme</div><div id="programFilters" class="program-filter-grid"></div><p class="filter-hint">A programme filter also expands the live search to improve coverage.</p></div>
+<div class="drawer-section"><div class="drawer-label">Hotel category</div><div class="star-filter-grid"><button data-stars="0" class="star-filter active"><span>ALL</span><small>Any category</small></button><button data-stars="3" class="star-filter"><span>★★★+</span><small>3 stars and above</small></button><button data-stars="4" class="star-filter"><span>★★★★+</span><small>4 stars and above</small></button><button data-stars="5" class="star-filter"><span>★★★★★</span><small>5 stars only</small></button></div></div>
+<div class="drawer-section"><div class="drawer-label">Amenities</div><div id="amenityFilters" class="amenity-filter-grid"></div><p class="filter-hint">Amenity filters use the hotel's structured Google Hotels amenity data and search expansion.</p></div>
+<div class="drawer-section"><div class="drawer-label">Distance</div><label class="range-label"><span>Within <b id="radiusValue">100</b> km of the search centre</span><input id="radius" type="range" min="1" max="100" value="100"></label></div>
+<div class="drawer-section"><div class="drawer-label">Useful loyalty value</div><label class="check-control"><input id="onlyBenefits" type="checkbox"> Only hotels with meaningful benefits</label><label class="check-control"><input id="onlyOffers" type="checkbox"> Only hotels with a personal offer</label></div>
+<div class="drawer-actions"><button id="resetFilters" class="secondary">Reset</button><button id="applyFilters" class="primary">Apply filters</button></div></aside>
+<div id="compareDrawer" class="modal-root hidden"></div><div id="accountModal" class="modal-root hidden"></div><div id="bookingModal" class="modal-root hidden"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="app.js"></script>
+</body></html>
