@@ -603,32 +603,136 @@ def amex_credit(hotel_name, program, brand, price):
 st.markdown(
     """
     <style>
-    .stApp { background: #f7f3ec; }
-    section[data-testid="stSidebar"] { background: #efe8dc; }
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap');
+
+    :root {
+        --ivory: #f7f3ec;
+        --paper: #fffdf9;
+        --sand: #e9e0d2;
+        --olive: #46513d;
+        --olive-dark: #35402f;
+        --terracotta: #9a5d4f;
+        --ink: #24241f;
+        --muted: #777268;
+    }
+
+    .stApp {
+        background: var(--ivory);
+        color: var(--ink);
+    }
+
+    section[data-testid="stSidebar"] {
+        background: #eee7dc;
+        border-right: 1px solid var(--sand);
+    }
+
     .block-container {
-        max-width: 1160px;
-        padding-top: 1rem;
-        padding-bottom: 2rem;
+        max-width: 1180px;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
     }
-    .hotel-image {
-        width: 100%;
-        height: 175px;
-        object-fit: cover;
-        border-radius: 14px;
-        border: 1px solid #e6ddd0;
+
+    h1, h2, h3 {
+        font-family: 'Playfair Display', Georgia, serif !important;
+        color: var(--olive-dark) !important;
+        letter-spacing: -0.02em;
+        font-weight: 600 !important;
     }
+
+    p, label, div, span, button, input, textarea, select {
+        font-family: 'DM Sans', Arial, sans-serif;
+    }
+
+    h1 {
+        font-size: 3rem !important;
+        line-height: 1.05 !important;
+        margin-bottom: .3rem !important;
+    }
+
+    h2 {
+        font-size: 1.8rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+    }
+
+    [data-testid="stCaptionContainer"] {
+        color: var(--muted);
+    }
+
     .hotel-card {
-        background: #fffdf9;
-        border: 1px solid #e6ddd0;
-        border-radius: 16px;
-        padding: .9rem 1rem;
-        margin-bottom: .8rem;
+        background: var(--paper);
+        border: 1px solid var(--sand);
+        border-radius: 18px;
+        padding: 1.05rem 1.15rem;
+        margin-bottom: .85rem;
+        box-shadow: 0 4px 18px rgba(70, 60, 45, 0.035);
     }
+
+    .hotel-card:hover {
+        border-color: #d9cbb8;
+    }
+
     div[data-testid="stMetric"] {
-        background: #fffdf9;
-        border: 1px solid #e6ddd0;
-        border-radius: 12px;
-        padding: .3rem .5rem;
+        background: var(--paper);
+        border: 1px solid var(--sand);
+        border-radius: 14px;
+        padding: .35rem .65rem;
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: var(--muted);
+        font-size: .75rem;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: var(--olive-dark);
+        font-weight: 600;
+    }
+
+    .stButton > button {
+        border-radius: 999px;
+        border: 1px solid #cdbfae;
+        background: var(--paper);
+        color: var(--olive-dark);
+        font-weight: 500;
+    }
+
+    .stButton > button:hover {
+        border-color: var(--olive);
+        color: var(--olive-dark);
+    }
+
+    div[data-baseweb="select"] > div {
+        background: var(--paper);
+        border-color: var(--sand);
+        border-radius: 10px;
+    }
+
+    div[data-baseweb="input"] > div {
+        background: var(--paper);
+        border-color: var(--sand);
+        border-radius: 10px;
+    }
+
+    .stSuccess {
+        background: #edf2e9 !important;
+        border-color: #cbd8c3 !important;
+    }
+
+    .stInfo {
+        background: #f3eee6 !important;
+        border-color: #e2d6c6 !important;
+    }
+
+    .stWarning {
+        background: #f7eee8 !important;
+        border-color: #e6cfc2 !important;
+    }
+
+    hr {
+        border-color: var(--sand);
     }
     </style>
     """,
@@ -640,7 +744,8 @@ st.markdown(
 # ------------------------------------------------------------
 
 st.title("Hotel Loyalty")
-st.caption("Live-Preise · persönlicher Status · Punkte · Amex Offers")
+st.caption("Dein persönlicher Hotel-Finder · Status · Wert · Vorteile")
+st.markdown("<div style=\"height:2px;width:54px;background:#46513d;margin:18px 0 28px 0;border-radius:2px;\"></div>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------
 # SIDEBAR
@@ -683,7 +788,7 @@ with st.sidebar.expander("Status"):
         if default not in statuses:
             default = statuses[0]
 
-        st.session_state[f"status_{program}"] = st.selectbox(
+        st.selectbox(
             program,
             statuses,
             index=statuses.index(default),
@@ -692,7 +797,7 @@ with st.sidebar.expander("Status"):
 
 with st.sidebar.expander("Punkte"):
     for program in PROGRAMS:
-        st.session_state[f"points_{program}"] = st.number_input(
+        st.number_input(
             program,
             min_value=0,
             value=int(DEFAULT_POINTS[program]),
@@ -702,7 +807,7 @@ with st.sidebar.expander("Punkte"):
 
 with st.sidebar.expander("Punktewert"):
     for program in PROGRAMS:
-        st.session_state[f"value_{program}"] = st.number_input(
+        st.number_input(
             f"{program} · €/1.000",
             min_value=0.0,
             value=float(DEFAULT_POINT_VALUE_EUR_PER_1000[program]),
@@ -776,6 +881,10 @@ with st.sidebar.expander("Filter"):
         a for a in amenity_options
         if st.checkbox(a, key=f"amenity_{a}")
     ]
+
+if st.sidebar.button("Neue Live-Suche"):
+    st.cache_data.clear()
+    st.rerun()
 
 sort_by = st.sidebar.selectbox(
     "Sortierung",
@@ -1083,7 +1192,7 @@ for r in results:
             # Show only the strongest 4 benefits here.
             if r["benefits"]:
                 for benefit in r["benefits"][:4]:
-                    st.markdown(f":green[✓ {benefit}]")
+                    st.markdown(f":green[{benefit}]")
 
             if len(r["benefits"]) > 4:
                 st.caption(f"+ {len(r['benefits']) - 4} weitere Vorteile")
@@ -1124,7 +1233,7 @@ for r in results:
             st.write(f"Status: {r['status']}")
 
             for benefit in r["benefits"]:
-                st.markdown(f":green[✓ {benefit}]")
+                st.markdown(f":green[{benefit}]")
 
             st.divider()
 
