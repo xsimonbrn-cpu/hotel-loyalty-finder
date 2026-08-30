@@ -477,57 +477,225 @@ def score_hotel(program, benefits, promo):
 
     return min(round(score), 100)
 
-# ------------------------------------------------------------
-# CSS - more app-like / mobile-friendly
-# ------------------------------------------------------------
+
+# ============================================================
+# LIVE STAYAPI SEARCH
+# ============================================================
+#
+# Streamlit Cloud Secret:
+# STAYAPI_KEY = "your_key"
+#
+# StayAPI endpoint:
+# GET https://api.stayapi.com/v1/google_hotels/search
+# ============================================================
+
+import requests
+from datetime import date, timedelta
+
+STAYAPI_URL = "https://api.stayapi.com/v1/google_hotels/search"
+
+def search_live_hotels(api_key, location, check_in, check_out, adults, currency):
+    response = requests.get(
+        STAYAPI_URL,
+        headers={"X-API-Key": api_key},
+        params={
+            "location": location,
+            "check_in": check_in,
+            "check_out": check_out,
+            "adults": adults,
+            "currency": currency,
+        },
+        timeout=60,
+    )
+
+    if response.status_code == 401:
+        raise RuntimeError("StayAPI-Key ungültig oder nicht akzeptiert.")
+    if response.status_code == 403:
+        raise RuntimeError("StayAPI-Zugriff verweigert oder Kontingent erreicht.")
+    if not response.ok:
+        try:
+            detail = response.json()
+        except Exception:
+            detail = response.text[:500]
+        raise RuntimeError(f"StayAPI Fehler {response.status_code}: {detail}")
+
+    return response.json()
+
+def classify_hotel(name):
+    name_low = name.lower()
+
+    rules = [
+        ("waldorf astoria", "Waldorf Astoria", "Hilton Honors"),
+        ("conrad", "Conrad", "Hilton Honors"),
+        ("doubletree", "DoubleTree", "Hilton Honors"),
+        ("hilton garden inn", "Hilton Garden Inn", "Hilton Honors"),
+        ("hampton", "Hampton", "Hilton Honors"),
+        ("homewood", "Homewood Suites", "Hilton Honors"),
+        ("home2", "Home2 Suites", "Hilton Honors"),
+        ("curio", "Curio Collection", "Hilton Honors"),
+        ("tapestry", "Tapestry Collection", "Hilton Honors"),
+        ("hilton", "Hilton", "Hilton Honors"),
+
+        ("ritz-carlton", "The Ritz-Carlton", "Marriott Bonvoy"),
+        ("ritz carlton", "The Ritz-Carlton", "Marriott Bonvoy"),
+        ("st. regis", "St. Regis", "Marriott Bonvoy"),
+        ("jw marriott", "JW Marriott", "Marriott Bonvoy"),
+        ("w hotel", "W Hotels", "Marriott Bonvoy"),
+        ("w hotels", "W Hotels", "Marriott Bonvoy"),
+        ("edition", "EDITION", "Marriott Bonvoy"),
+        ("sheraton", "Sheraton", "Marriott Bonvoy"),
+        ("westin", "Westin", "Marriott Bonvoy"),
+        ("renaissance", "Renaissance", "Marriott Bonvoy"),
+        ("le méridien", "Le Méridien", "Marriott Bonvoy"),
+        ("le meridien", "Le Méridien", "Marriott Bonvoy"),
+        ("autograph collection", "Autograph Collection", "Marriott Bonvoy"),
+        ("courtyard", "Courtyard", "Marriott Bonvoy"),
+        ("moxy", "Moxy", "Marriott Bonvoy"),
+        ("aloft", "Aloft", "Marriott Bonvoy"),
+        ("marriott", "Marriott Hotels", "Marriott Bonvoy"),
+
+        ("intercontinental", "InterContinental", "IHG One Rewards"),
+        ("six senses", "Six Senses", "IHG One Rewards"),
+        ("regent", "Regent", "IHG One Rewards"),
+        ("kimpton", "Kimpton", "IHG One Rewards"),
+        ("hotel indigo", "Hotel Indigo", "IHG One Rewards"),
+        ("crowne plaza", "Crowne Plaza", "IHG One Rewards"),
+        ("holiday inn express", "Holiday Inn Express", "IHG One Rewards"),
+        ("holiday inn", "Holiday Inn", "IHG One Rewards"),
+        ("voco", "voco", "IHG One Rewards"),
+
+        ("raffles", "Raffles", "ALL - Accor Live Limitless"),
+        ("fairmont", "Fairmont", "ALL - Accor Live Limitless"),
+        ("sofitel", "Sofitel", "ALL - Accor Live Limitless"),
+        ("mgallery", "MGallery", "ALL - Accor Live Limitless"),
+        ("pullman", "Pullman", "ALL - Accor Live Limitless"),
+        ("swissôtel", "Swissôtel", "ALL - Accor Live Limitless"),
+        ("swissotel", "Swissôtel", "ALL - Accor Live Limitless"),
+        ("mövenpick", "Mövenpick", "ALL - Accor Live Limitless"),
+        ("movenpick", "Mövenpick", "ALL - Accor Live Limitless"),
+        ("novotel", "Novotel", "ALL - Accor Live Limitless"),
+        ("mercure", "Mercure", "ALL - Accor Live Limitless"),
+        ("ibis", "ibis", "ALL - Accor Live Limitless"),
+        ("25hours", "25hours", "ALL - Accor Live Limitless"),
+        ("mondrian", "Mondrian", "ALL - Accor Live Limitless"),
+        ("the hoxton", "The Hoxton", "ALL - Accor Live Limitless"),
+
+        ("radisson collection", "Radisson Collection", "Radisson Rewards"),
+        ("radisson blu", "Radisson Blu", "Radisson Rewards"),
+        ("radisson red", "Radisson RED", "Radisson Rewards"),
+        ("radisson", "Radisson", "Radisson Rewards"),
+        ("park plaza", "Park Plaza", "Radisson Rewards"),
+        ("park inn", "Park Inn by Radisson", "Radisson Rewards"),
+
+        ("gran melia", "Gran Meliá", "MeliáRewards"),
+        ("gran meliá", "Gran Meliá", "MeliáRewards"),
+        ("me by melia", "ME by Meliá", "MeliáRewards"),
+        ("me by meliá", "ME by Meliá", "MeliáRewards"),
+        ("innside", "INNSiDE", "MeliáRewards"),
+        ("melia", "Meliá", "MeliáRewards"),
+        ("meliá", "Meliá", "MeliáRewards"),
+
+        ("anantara", "Anantara", "GHA DISCOVERY"),
+        ("kempinski", "Kempinski", "GHA DISCOVERY"),
+        ("nh collection", "NH Collection", "GHA DISCOVERY"),
+        ("nh hotels", "NH Hotels", "GHA DISCOVERY"),
+        ("nh ", "NH Hotels", "GHA DISCOVERY"),
+        ("tivoli", "Tivoli", "GHA DISCOVERY"),
+        ("avani", "Avani", "GHA DISCOVERY"),
+
+        ("wyndham grand", "Wyndham Grand", "Wyndham Rewards"),
+        ("wyndham", "Wyndham", "Wyndham Rewards"),
+        ("ramada", "Ramada", "Wyndham Rewards"),
+        ("days inn", "Days Inn", "Wyndham Rewards"),
+        ("super 8", "Super 8", "Wyndham Rewards"),
+        ("la quinta", "La Quinta", "Wyndham Rewards"),
+
+        ("worldhotels", "WorldHotels", "WorldHotels Rewards"),
+
+        ("best western premier", "Best Western Premier", "Best Western Rewards"),
+        ("best western plus", "Best Western Plus", "Best Western Rewards"),
+        ("best western", "Best Western", "Best Western Rewards"),
+    ]
+
+    for needle, brand, program in rules:
+        if needle in name_low:
+            return program, brand
+
+    return None, None
+
+def calc_score(benefits, promo, rating):
+    score = 45
+    text = " ".join(benefits).lower()
+
+    if "frühstück" in text:
+        score += 15
+    if "upgrade" in text:
+        score += 12
+    if "late check-out" in text or "späte abreise" in text:
+        score += 8
+    if "lounge" in text:
+        score += 8
+    if promo:
+        score += min(promo / 2, 10)
+    if rating:
+        score += min(max((rating - 4.0) * 5, 0), 10)
+
+    return min(round(score), 100)
+
+# ============================================================
+# APP UI
+# ============================================================
 
 st.markdown("""
 <style>
 .block-container {
     max-width: 1250px;
-    padding-top: 2rem;
+    padding-top: 1.5rem;
 }
 .hotel-card {
-    padding: 1.1rem 1.2rem;
-    border: 1px solid rgba(128,128,128,.25);
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(128,128,128,.22);
     border-radius: 16px;
     margin-bottom: 1rem;
-}
-.badge {
-    display: inline-block;
-    padding: 0.3rem 0.65rem;
-    border-radius: 999px;
-    background: #eef6ff;
-    margin-right: .35rem;
-    margin-bottom: .35rem;
-    font-size: .9rem;
-}
-.small {
-    color: #777;
-    font-size: .9rem;
-}
-.big-score {
-    font-size: 1.8rem;
-    font-weight: 700;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------------------
-# HEADER
-# ------------------------------------------------------------
-
 st.title("🏨 Hotel Loyalty Finder")
-st.caption("Deine Hotelketten • dein Status • deine echten Vorteile • später mit Live-Hotels")
-
-# ------------------------------------------------------------
-# SIDEBAR
-# ------------------------------------------------------------
+st.caption("Live-Hotels · Live-Preise · dein Status · deine Promotions")
 
 st.sidebar.header("🔎 Suche")
 
-cities = sorted(set(h[3] for h in HOTELS))
-selected_city = st.sidebar.selectbox("Stadt", cities)
+city = st.sidebar.text_input(
+    "Stadt",
+    value="Istanbul",
+)
+
+today = date.today()
+
+check_in = st.sidebar.date_input(
+    "Check-in",
+    value=today + timedelta(days=7),
+    min_value=today,
+)
+
+check_out = st.sidebar.date_input(
+    "Check-out",
+    value=today + timedelta(days=9),
+    min_value=today + timedelta(days=1),
+)
+
+adults = st.sidebar.number_input(
+    "Erwachsene",
+    min_value=1,
+    max_value=10,
+    value=2,
+)
+
+currency = st.sidebar.selectbox(
+    "Währung",
+    ["EUR", "GBP", "USD"],
+)
 
 st.sidebar.divider()
 st.sidebar.subheader("Hotelketten")
@@ -537,161 +705,270 @@ for program in PROGRAMS:
     if st.sidebar.checkbox(program, value=True):
         selected_programs.append(program)
 
-with st.sidebar.expander("💳 Meine Status", expanded=False):
-    st.caption("Hier kannst du deine aktuellen Statuslevel ändern.")
+with st.sidebar.expander("💳 Meine Status"):
+    st.caption("Deine Statuslevel")
     for program, data in PROGRAMS.items():
         statuses = list(data["statuses"].keys())
-        current = DEFAULT_STATUS.get(program, statuses[0])
-        if current not in statuses:
-            current = statuses[0]
+        default = DEFAULT_STATUS.get(program, statuses[0])
+        if default not in statuses:
+            default = statuses[0]
+
         st.session_state[f"status_{program}"] = st.selectbox(
             program,
             statuses,
-            index=statuses.index(current),
-            key=f"select_{program}"
+            index=statuses.index(default),
+            key=f"status_box_{program}",
         )
 
-with st.sidebar.expander("🎁 Meine Promotions", expanded=False):
-    st.write(f"MeliáRewards: **{PERSONAL_PROMOTIONS['MeliáRewards']} % Rabatt**")
-    st.caption("Persönliche Promotion – wird automatisch in die Preisberechnung einbezogen.")
+with st.sidebar.expander("🎁 Meine Promotions"):
+    st.write("MeliáRewards")
+    st.success("20 % persönliche Promotion")
 
-# ------------------------------------------------------------
-# FILTER OPTIONS
-# ------------------------------------------------------------
-
-st.sidebar.divider()
 sort_by = st.sidebar.selectbox(
     "Sortieren nach",
-    ["Persönlicher Statuswert", "Preis", "Hotelname"]
+    ["Persönlicher Statuswert", "Preis", "Hotelbewertung", "Hotelname"],
 )
 
-# ------------------------------------------------------------
-# FILTER HOTELS
-# ------------------------------------------------------------
+api_key = st.secrets.get("STAYAPI_KEY", "")
+
+if not api_key:
+    st.warning("🔑 Dein StayAPI-Key fehlt noch.")
+    st.info(
+        "Streamlit → Manage app → Settings → Secrets → "
+        "STAYAPI_KEY = \"DEIN_KEY\""
+    )
+    st.stop()
+
+if check_out <= check_in:
+    st.error("Check-out muss nach Check-in liegen.")
+    st.stop()
+
+try:
+    with st.spinner(f"🔎 Live-Hotels und Preise für {city} werden gesucht..."):
+        payload = search_live_hotels(
+            api_key,
+            city,
+            check_in.isoformat(),
+            check_out.isoformat(),
+            adults,
+            currency,
+        )
+except Exception as exc:
+    st.error(f"Live-Suche fehlgeschlagen: {exc}")
+    st.stop()
+
+raw_hotels = payload.get("hotels", [])
 
 results = []
-for hotel in HOTELS:
-    name, brand, program, city, price = hotel
 
-    if city != selected_city or program not in selected_programs:
+for hotel in raw_hotels:
+    name = hotel.get("name", "")
+    program, brand = classify_hotel(name)
+
+    if not program or program not in selected_programs:
         continue
 
     status = st.session_state.get(
         f"status_{program}",
-        DEFAULT_STATUS.get(program, "Member")
+        DEFAULT_STATUS.get(program, "Member"),
     )
-    benefits = get_benefits(program, status)
-    promo = promotion(program)
-    final_price = effective_price(price, program)
-    score = score_hotel(program, benefits, promo)
+
+    benefits = PROGRAMS[program]["statuses"].get(status, [])
+    promo = PERSONAL_PROMOTIONS.get(program, 0)
+
+    price_obj = hotel.get("price") or {}
+
+    current = price_obj.get("current")
+    if current is None:
+        continue
+
+    try:
+        current = float(current)
+    except (TypeError, ValueError):
+        continue
+
+    price_currency = price_obj.get("currency") or currency
+    effective = current * (1 - promo / 100)
+
+    rating_obj = hotel.get("rating") or {}
+    rating = rating_obj.get("value")
+
+    try:
+        rating = float(rating)
+    except (TypeError, ValueError):
+        rating = None
+
+    score = calc_score(
+        benefits,
+        promo,
+        rating,
+    )
+
+    location = hotel.get("location") or {}
 
     results.append({
         "name": name,
         "brand": brand,
         "program": program,
-        "price": price,
-        "final_price": final_price,
-        "promo": promo,
         "status": status,
         "benefits": benefits,
+        "promo": promo,
+        "price": current,
+        "effective": effective,
+        "currency": price_currency,
+        "nightly": price_obj.get("price_per_night"),
+        "rating": rating,
+        "rating_votes": rating_obj.get("votes"),
+        "stars": hotel.get("stars"),
+        "amenities": hotel.get("amenities") or [],
+        "address": location.get("address"),
+        "image": (hotel.get("images") or [None])[0],
+        "is_paid": hotel.get("is_paid", False),
+        "check_in_time": hotel.get("check_in_time"),
+        "check_out_time": hotel.get("check_out_time"),
         "score": score,
     })
 
 if sort_by == "Persönlicher Statuswert":
-    results.sort(key=lambda x: (-x["score"], x["final_price"]))
+    results.sort(key=lambda x: (-x["score"], x["effective"]))
 elif sort_by == "Preis":
-    results.sort(key=lambda x: x["final_price"])
+    results.sort(key=lambda x: x["effective"])
+elif sort_by == "Hotelbewertung":
+    results.sort(key=lambda x: (-(x["rating"] or 0), x["effective"]))
 else:
-    results.sort(key=lambda x: x["name"])
+    results.sort(key=lambda x: x["name"].lower())
 
-# ------------------------------------------------------------
-# SUMMARY
-# ------------------------------------------------------------
+st.subheader(f"Hotels in {city}")
 
-st.subheader(f"Hotels in {selected_city}")
+st.caption(
+    f"Live-Suche · {check_in.strftime('%d.%m.%Y')} – "
+    f"{check_out.strftime('%d.%m.%Y')} · {adults} Erwachsene"
+)
 
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.metric("Hotels", len(results))
-with c2:
-    if results:
-        st.metric("Bestes Match", f"{results[0]['score']}/100")
-    else:
-        st.metric("Bestes Match", "–")
-with c3:
-    promo_count = sum(1 for r in results if r["promo"] > 0)
-    st.metric("Mit persönlicher Promotion", promo_count)
-
-# ------------------------------------------------------------
-# BEST MATCH
-# ------------------------------------------------------------
-
-if results:
-    best = results[0]
-    st.success(
-        f"🏆 Bestes persönliches Match: **{best['name']}** — "
-        f"{best['program']} {best['status']} — {best['score']}/100"
+if not results:
+    st.warning(
+        "Keine Hotels deiner ausgewählten Loyalty-Ketten wurden in den "
+        "Live-Ergebnissen erkannt. Die allgemeine StayAPI-Hotelsuche kann "
+        "mehr Hotels liefern als unsere aktuelle Marken-Zuordnung erkennt."
     )
 
-# ------------------------------------------------------------
-# HOTEL CARDS
-# ------------------------------------------------------------
+    with st.expander("🔧 Debug: erkannte Live-Hotels"):
+        for hotel in raw_hotels[:50]:
+            st.write(hotel.get("name", "Unbekannt"))
+
+    st.stop()
+
+best = results[0]
+
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
+    st.metric("Passende Hotels", len(results))
+
+with c2:
+    st.metric(
+        "Günstigster Preis",
+        f"{min(x['effective'] for x in results):.0f} {currency}"
+    )
+
+with c3:
+    st.metric("Bestes Match", f"{best['score']}/100")
+
+with c4:
+    ratings = [x["rating"] for x in results if x["rating"]]
+    st.metric(
+        "Ø Bewertung",
+        f"{sum(ratings) / len(ratings):.1f}/5" if ratings else "–"
+    )
+
+st.success(
+    f"🏆 Bestes persönliches Match: **{best['name']}** · "
+    f"{best['program']} {best['status']} · {best['score']}/100"
+)
 
 for r in results:
-    st.markdown('<div class="hotel-card">', unsafe_allow_html=True)
+    with st.container(border=True):
+        col1, col2, col3 = st.columns([5, 2, 2])
 
-    top1, top2, top3 = st.columns([4, 2, 1])
+        with col1:
+            st.markdown(f"### 🏨 {r['name']}")
+            st.write(f"**{r['brand']}** · {r['program']}")
+            if r["address"]:
+                st.caption(r["address"])
 
-    with top1:
-        st.markdown(f"### 🏨 {r['name']}")
-        st.write(f"**{r['brand']}** · {r['program']}")
-        st.markdown(
-            f'<span class="badge">Status: {r["status"]}</span>'
-            f'<span class="badge">Persönlicher Wert: {r["score"]}/100</span>',
-            unsafe_allow_html=True
-        )
+            parts = [f"Status: {r['status']}", f"Match: {r['score']}/100"]
 
-    with top2:
-        st.write("**Dein Statuswert**")
-        if r["promo"]:
-            st.success(f"🎁 {r['promo']} % persönliche Promotion")
-        else:
-            st.info("Keine persönliche Promotion")
+            if r["rating"]:
+                parts.append(f"⭐ {r['rating']:.1f}/5")
 
-    with top3:
-        st.metric("Preis", f"{r['price']:.0f} €")
-        if r["promo"]:
-            st.metric("Effektiv", f"{r['final_price']:.0f} €")
+            if r["stars"]:
+                parts.append(f"★ {r['stars']}")
 
-    with st.expander("🎁 Alle meine Vorteile"):
-        for benefit in r["benefits"]:
-            st.write(f"✓ {benefit}")
+            st.write(" · ".join(parts))
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        with col2:
+            st.metric(
+                "Live-Preis",
+                f"{r['price']:.2f} {r['currency']}"
+            )
 
-# ------------------------------------------------------------
-# MY LOYALTY OVERVIEW
-# ------------------------------------------------------------
+            if r["promo"]:
+                st.success(f"🎁 -{r['promo']} %")
+                st.write(
+                    f"Effektiv: **{r['effective']:.2f} {r['currency']}**"
+                )
+
+            if r["nightly"] is not None:
+                st.caption(
+                    f"≈ {r['nightly']} {r['currency']}/Nacht"
+                )
+
+        with col3:
+            if r["rating"]:
+                st.write(f"⭐ **{r['rating']:.1f}/5**")
+
+            if r["stars"]:
+                st.write(f"★ {r['stars']} Sterne")
+
+            if r["check_in_time"]:
+                st.caption(f"Check-in: {r['check_in_time']}")
+
+            if r["check_out_time"]:
+                st.caption(f"Check-out: {r['check_out_time']}")
+
+            if r["is_paid"]:
+                st.caption("Gesponsertes Ergebnis")
+
+        with st.expander("🎁 Meine Vorteile"):
+            for benefit in r["benefits"]:
+                st.write(f"✓ {benefit}")
+
+            if r["promo"]:
+                st.write(
+                    f"✓ Persönliche {r['promo']} % Meliá-Promotion"
+                )
+
+        with st.expander("🏨 Hotelinformationen"):
+            if r["amenities"]:
+                st.write("**Ausstattung:**")
+                st.write(", ".join(str(a) for a in r["amenities"][:25]))
+
+        with st.expander("💶 Preis"):
+            st.write(
+                "Der Preis stammt aus dem aktuellen Live-Ergebnis. "
+                "Preise und Verfügbarkeit können sich jederzeit ändern."
+            )
+            if r["promo"]:
+                st.write(f"API-Preis: {r['price']:.2f} {r['currency']}")
+                st.write(
+                    f"Nach deiner Promotion: "
+                    f"{r['effective']:.2f} {r['currency']}"
+                )
 
 st.divider()
-st.subheader("💳 Meine Loyalty-Programme")
 
-for program, data in PROGRAMS.items():
-    status = st.session_state.get(
-        f"status_{program}",
-        DEFAULT_STATUS.get(program, "Member")
-    )
-    promo = promotion(program)
-    st.write(f"{data['color']} **{program}** — {status}" + (f" · 🎁 {promo}% Promotion" if promo else ""))
-
-# ------------------------------------------------------------
-# DATA SOURCE NOTE
-# ------------------------------------------------------------
-
-with st.expander("⚙️ Aktueller Stand / nächste Ausbaustufe"):
-    st.write(
-        "Die App läuft bereits online, verwendet aber noch Test-Hotels. "
-        "Die nächste Ausbaustufe ersetzt diese Testdaten durch eine echte "
-        "Hotelsuche und ordnet die gefundenen Hotels automatisch Marke und "
-        "Loyalty-Programm zu."
-    )
+st.caption(
+    "Live-Hotel- und Preisdaten: StayAPI/Google Hotels. "
+    "Loyalty-Vorteile: persönliche Regel-Datenbank. "
+    "Die Vorteile können je nach Marke, Land, Tarif und Verfügbarkeit abweichen."
+)
