@@ -212,7 +212,7 @@ function normalizeUrls(property) {
         "hotel_website",
         "website",
         "website_url",
-        "link"
+        "official_url"
       ])
     );
 
@@ -220,7 +220,8 @@ function normalizeUrls(property) {
     extractUrl(
       first(property, [
         "booking_url",
-        "hotel_url"
+        "hotel_url",
+        "link"
       ])
     );
 
@@ -1197,7 +1198,7 @@ export async function onRequest(
     Number(
       incoming.searchParams
         .get("pages") ||
-      3
+      5
     );
 
   const pages =
@@ -1209,10 +1210,10 @@ export async function onRequest(
           ? Math.floor(
               requestedPages
             )
-          : 3,
+          : 5,
         1
       ),
-      5
+      7
     );
 
   if (!location) {
