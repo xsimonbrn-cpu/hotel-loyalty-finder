@@ -1,41 +1,25 @@
-<!doctype html>
-<html lang="en">
-<head>
+<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fff">
 <title>S.M.B. Hotel Loyalty</title><link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-</head>
-<body>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script></head><body>
 <header class="topbar"><a class="brand" href="#"><img src="logo.png" alt="S.M.B."><span><small>S.M.B.</small><strong>HOTEL LOYALTY</strong></span></a>
 <div class="top-actions"><button id="favoritesToggle">Favorites <b id="favCount">0</b></button><button id="compareToggle">Compare <b id="compareCount">0</b></button></div></header>
-<main>
-<section class="hero"><p class="eyebrow">PRIVATE HOTEL FINDER</p><h1>Find the stay that gives you the most.</h1><p>Live hotel prices, loyalty benefits, amenities and personal value — in one place.</p></section>
-<section class="search-card"><div class="search-grid">
-<label>Location<input id="city" value="Frankfurt" placeholder="City, country or region"></label>
-<label>Check-in<input id="checkIn" type="date"></label><label>Check-out<input id="checkOut" type="date"></label>
-<label>Guests<select id="guests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-<button id="searchButton" class="primary">Search</button></div>
-<div class="toolbar"><button id="openFilters" class="tool">Filters <span id="activeFilterCount">0</span></button><button id="mapToggle" class="tool">Map</button><button id="resetAll" class="tool">Reset</button>
-<label class="sort">Sort<select id="sort"><option value="effective">Effective price</option><option value="value">Best value</option><option value="benefits">Benefits</option><option value="rating">Rating</option><option value="stars">Stars</option></select></label></div></section>
+<main><section class="hero"><p class="eyebrow">PRIVATE HOTEL FINDER</p><h1>Find the stay that gives you the most.</h1><p>Live hotel prices, loyalty benefits, amenities and personal value — in one place.</p></section>
+<section class="search-card"><div class="search-grid"><label>Location<input id="city" value="Frankfurt" placeholder="City, country or region"></label><label>Check-in<input id="checkIn" type="date"></label><label>Check-out<input id="checkOut" type="date"></label><label>Guests<select id="guests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label><button id="searchButton" class="primary">Search</button></div>
+<div class="toolbar"><button id="openFilters" class="tool">Filters <span id="activeFilterCount">0</span></button><button id="mapToggle" class="tool">Map</button><button id="resetAll" class="tool">Reset</button><label class="sort">Sort<select id="sort"><option value="effective">Effective price</option><option value="value">Best value</option><option value="benefits">Benefits</option><option value="rating">Guest rating</option><option value="stars">Stars</option></select></label></div></section>
 <section id="mapWrap" class="map-wrap hidden"><div id="map"></div></section>
 <section class="results-head"><div><p class="eyebrow">RESULTS</p><h2 id="resultTitle">Hotels</h2><p id="resultMeta">Search to see live hotels.</p></div><div class="page-info" id="pageInfo"></div></section>
-<section id="results" class="results"></section><nav id="pagination" class="pagination"></nav><section id="emptyState" class="empty"><p>No hotels match these filters.</p></section>
-</main>
-<aside id="filterDrawer" class="drawer"><div class="drawer-inner">
-<div class="drawer-head"><div><p class="eyebrow">REFINE</p><h2>Filters</h2></div><button id="closeFilters">Close</button></div>
+<section id="results" class="results"></section><nav id="pagination" class="pagination"></nav><section id="emptyState" class="empty"><p>No hotels match these filters.</p></section></main>
+<aside id="filterDrawer" class="drawer"><div class="drawer-inner"><div class="drawer-head"><div><p class="eyebrow">REFINE</p><h2>Filters</h2></div><button id="closeFilters">Close</button></div>
 <div class="drawer-section"><h3>Loyalty programme</h3><div class="filter-grid" id="programFilters">
 <label><input type="checkbox" value="Hilton Honors"> Hilton Honors</label><label><input type="checkbox" value="Marriott Bonvoy"> Marriott Bonvoy</label><label><input type="checkbox" value="IHG One Rewards"> IHG One Rewards</label><label><input type="checkbox" value="ALL - Accor Live Limitless"> ALL · Accor</label><label><input type="checkbox" value="Radisson Rewards"> Radisson Rewards</label><label><input type="checkbox" value="MeliáRewards"> MeliáRewards</label><label><input type="checkbox" value="GHA DISCOVERY"> GHA DISCOVERY</label><label><input type="checkbox" value="Wyndham Rewards"> Wyndham Rewards</label><label><input type="checkbox" value="WorldHotels Rewards"> WorldHotels Rewards</label><label><input type="checkbox" value="Best Western Rewards"> Best Western Rewards</label></div></div>
-<div class="drawer-section"><h3>Hotel category</h3><div class="star-filter" id="starFilters">
-<label><input type="radio" name="stars" value="0" checked><span>Any class</span></label><label><input type="radio" name="stars" value="3"><span><i>★★★</i><b>3+ stars</b></span></label><label><input type="radio" name="stars" value="4"><span><i>★★★★</i><b>4+ stars</b></span></label><label><input type="radio" name="stars" value="5"><span><i>★★★★★</i><b>5 stars</b></span></label></div><p class="filter-note">Uses the hotel's actual star class, not its guest rating.</p></div>
-<div class="drawer-section"><h3>Amenities</h3><div class="amenity-filter-grid">
-<label><input type="checkbox" value="Pool"><span class="line-icon">○</span>Pool</label><label><input type="checkbox" value="Spa"><span class="line-icon">◇</span>Spa</label><label><input type="checkbox" value="Sauna"><span class="line-icon">≋</span>Sauna</label><label><input type="checkbox" value="Fitness"><span class="line-icon">＋</span>Fitness</label><label><input type="checkbox" value="Breakfast"><span class="line-icon">□</span>Breakfast</label><label><input type="checkbox" value="Parking"><span class="line-icon">P</span>Parking</label></div><p class="filter-note">Amenities are normalized across hotel data sources.</p></div>
+<div class="drawer-section"><h3>Hotel category</h3><div class="star-filter" id="starFilters"><label><input type="radio" name="stars" value="0" checked><span>Any class</span></label><label><input type="radio" name="stars" value="3"><span><i>★★★</i><b>3+ stars</b></span></label><label><input type="radio" name="stars" value="4"><span><i>★★★★</i><b>4+ stars</b></span></label><label><input type="radio" name="stars" value="5"><span><i>★★★★★</i><b>5 stars</b></span></label></div><p class="filter-note">Hotel class is separate from the guest rating.</p></div>
+<div class="drawer-section"><h3>Amenities</h3><div class="amenity-filter-grid"><label><input type="checkbox" value="Pool"><span class="line-icon">○</span>Pool</label><label><input type="checkbox" value="Spa"><span class="line-icon">◇</span>Spa</label><label><input type="checkbox" value="Sauna"><span class="line-icon">≋</span>Sauna</label><label><input type="checkbox" value="Fitness"><span class="line-icon">＋</span>Fitness</label><label><input type="checkbox" value="Breakfast"><span class="line-icon">□</span>Breakfast</label><label><input type="checkbox" value="Parking"><span class="line-icon">P</span>Parking</label></div><p class="filter-note">Amenity detection combines structured fields and hotel descriptions/highlights.</p></div>
+<div class="drawer-section"><h3>My loyalty programmes</h3><p class="filter-note">Choose your actual status. Benefits on every hotel card use these settings and are saved on this device.</p><div id="statusFields"></div></div>
 <div class="drawer-section"><label class="switch"><input id="onlyBenefits" type="checkbox"><span>Hotels with meaningful loyalty benefits</span></label><label class="switch"><input id="onlyOffers" type="checkbox"><span>Hotels with personal offer / Amex value</span></label></div>
 <div class="drawer-actions"><button id="applyFilters" class="primary">Apply filters</button><button id="resetFilters" class="secondary">Reset filters</button></div>
 </div></aside>
 <div id="compareDrawer" class="compare-drawer hidden"><div class="compare-head"><div><p class="eyebrow">COMPARE</p><h2>Your shortlist</h2></div><button id="closeCompare">Close</button></div><div id="compareContent"></div></div>
-<script src="app.js"></script>
-</body></html>
+<script src="app.js"></script></body></html>
