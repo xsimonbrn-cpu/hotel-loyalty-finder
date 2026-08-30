@@ -7,8 +7,16 @@ Google Hotels via SerpApi
 Required Cloudflare Secret:
 SERPAPI_KEY
 
-The worker fetches multiple Google Hotels pages so the frontend
-can receive substantially more than the first ~20 hotels.
+Features:
+- Multiple Google Hotels pages
+- More than 20 hotels
+- Live prices
+- Hotel images
+- Ratings / reviews
+- Amenities
+- Hotel / brand / chain information
+- Booking links
+- Cloudflare caching
 */
 
 const SERPAPI_URL = "https://serpapi.com/search.json";
@@ -37,23 +45,57 @@ function json(data, status = 200, extraHeaders = {}) {
 }
 
 function validDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+  return /^\d{4}-\d{2}-\d{2}$/.test(
+    String(value || "")
+  );
 }
 
 function number(value) {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
     return null;
   }
 
   if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
+    return Number.isFinite(value)
+      ? value
+      : null;
   }
 
-  const parsed = Number(
-    String(value).replace(/[^0-9.-]/g, "")
-  );
+  if (
+    typeof value === "object"
+  ) {
+    const nested =
+      value.extracted_price ??
+      value.extracted_total ??
+      value.price ??
+      value.total ??
+      value.value ??
+      null;
 
-  return Number.isFinite(parsed) ? parsed : null;
+    if (
+      nested !== null &&
+      nested !== undefined
+    ) {
+      return number(nested);
+    }
+
+    return null;
+  }
+
+  const cleaned = String(value)
+    .replace(/[^\d.,-]/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+
+  const parsed = Number(cleaned);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
 }
 
 function first(obj, keys) {
@@ -61,7 +103,8 @@ function first(obj, keys) {
     if (
       obj &&
       obj[key] !== null &&
-      obj[key] !== undefined
+      obj[key] !== undefined &&
+      obj[key] !== ""
     ) {
       return obj[key];
     }
@@ -76,16 +119,30 @@ function cleanText(value) {
     .trim();
 }
 
-function nightsBetween(checkIn, checkOut) {
-  const a = new Date(`${checkIn}T00:00:00`);
-  const b = new Date(`${checkOut}T00:00:00`);
+function nightsBetween(
+  checkIn,
+  checkOut
+) {
+  const a = new Date(
+    `${checkIn}T00:00:00`
+  );
+
+  const b = new Date(
+    `${checkOut}T00:00:00`
+  );
 
   const diff = Math.round(
-    (b.getTime() - a.getTime()) / 86400000
+    (b.getTime() - a.getTime()) /
+      86400000
   );
 
   return Math.max(diff, 1);
 }
+
+
+/* ---------------------------------------------------------
+   ADDRESS
+--------------------------------------------------------- */
 
 function buildAddress(property) {
   const address =
@@ -98,102 +155,269 @@ function buildAddress(property) {
     return cleanText(address);
   }
 
-  if (address && typeof address === "object") {
+  if (
+    address &&
+    typeof address === "object"
+  ) {
     const parts = [
       address.street,
+      address.street_address,
+      address.housenumber,
       address.city,
       address.postal_code,
+      address.zip,
       address.country
     ].filter(Boolean);
 
     if (parts.length) {
-      return parts.join(", ");
+      return cleanText(
+        parts.join(", ")
+      );
     }
   }
 
   return null;
 }
 
+
+/* ---------------------------------------------------------
+   AMENITIES
+--------------------------------------------------------- */
+
 function normalizeAmenities(property) {
-  const raw = property?.amenities;
+  const result = [];
 
-  if (!Array.isArray(raw)) {
-    return [];
-  }
+  const raw =
+    property?.amenities ||
+    property?.facilities ||
+    [];
 
-  return raw
-    .map(item => {
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
       if (typeof item === "string") {
-        return cleanText(item);
-      }
+        const value = cleanText(item);
 
-      return cleanText(
-        first(item, [
-          "name",
-          "label",
-          "title"
-        ])
-      );
-    })
-    .filter(Boolean);
-}
+        if (value) {
+          result.push(value);
+        }
 
-function normalizeImages(property) {
-  const images = [];
-
-  if (Array.isArray(property?.images)) {
-    for (const item of property.images) {
-      if (typeof item === "string") {
-        images.push(item);
         continue;
       }
 
-      const url = first(item, [
-        "original_image",
-        "thumbnail",
-        "image",
-        "url"
-      ]);
+      if (
+        item &&
+        typeof item === "object"
+      ) {
+        const value = cleanText(
+          first(item, [
+            "name",
+            "label",
+            "title"
+          ])
+        );
 
-      if (url) {
-        images.push(url);
+        if (value) {
+          result.push(value);
+        }
       }
     }
   }
 
-  const singleImage = first(property, [
-    "image",
-    "image_url",
-    "thumbnail"
-  ]);
+  /*
+   Some Google Hotels results expose
+   amenities as individual fields.
+  */
 
-  if (singleImage) {
-    images.push(singleImage);
+  const textSources = [
+    property?.description,
+    property?.amenities_text,
+    property?.hotel_amenities
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const detected = [
+    ["Pool", /pool|swimming/i],
+    ["Spa", /spa|wellness/i],
+    ["Fitness", /fitness|gym/i],
+    ["Breakfast", /breakfast/i],
+    ["Parking", /parking/i],
+    ["Restaurant", /restaurant/i],
+    ["Bar", /\bbar\b/i],
+    ["Sauna", /sauna/i]
+  ];
+
+  for (const [
+    name,
+    pattern
+  ] of detected) {
+    if (
+      pattern.test(textSources)
+    ) {
+      result.push(name);
+    }
   }
 
-  return [...new Set(images.filter(Boolean))];
+  return [
+    ...new Set(
+      result.filter(Boolean)
+    )
+  ];
 }
 
-function normalizeBookingUrl(property) {
-  const direct = first(property, [
-    "link",
-    "hotel_url",
-    "booking_url"
-  ]);
 
-  if (direct) {
+/* ---------------------------------------------------------
+   IMAGES
+--------------------------------------------------------- */
+
+function normalizeImages(property) {
+  const images = [];
+
+  const addImage = (value) => {
+    if (
+      typeof value === "string" &&
+      value.trim()
+    ) {
+      images.push(value.trim());
+    }
+  };
+
+  if (
+    Array.isArray(
+      property?.images
+    )
+  ) {
+    for (
+      const item of property.images
+    ) {
+      if (
+        typeof item === "string"
+      ) {
+        addImage(item);
+        continue;
+      }
+
+      if (
+        item &&
+        typeof item === "object"
+      ) {
+        addImage(
+          first(item, [
+            "original_image",
+            "original",
+            "image",
+            "image_url",
+            "url",
+            "src",
+            "thumbnail"
+          ])
+        );
+      }
+    }
+  }
+
+  /*
+   SerpApi can expose images in
+   additional image-related fields.
+  */
+
+  const singleFields = [
+    "image",
+    "image_url",
+    "original_image",
+    "thumbnail",
+    "thumbnail_url"
+  ];
+
+  for (
+    const field of singleFields
+  ) {
+    addImage(
+      property?.[field]
+    );
+  }
+
+  /*
+   Some responses contain
+   a property image object.
+  */
+
+  if (
+    property?.image &&
+    typeof property.image === "object"
+  ) {
+    addImage(
+      first(property.image, [
+        "original_image",
+        "image",
+        "url",
+        "src"
+      ])
+    );
+  }
+
+  return [
+    ...new Set(
+      images.filter(Boolean)
+    )
+  ];
+}
+
+
+/* ---------------------------------------------------------
+   BOOKING URL
+--------------------------------------------------------- */
+
+function normalizeBookingUrl(
+  property
+) {
+  const direct = first(
+    property,
+    [
+      "link",
+      "hotel_url",
+      "booking_url",
+      "website",
+      "url"
+    ]
+  );
+
+  if (typeof direct === "string") {
     return direct;
   }
 
+  /*
+   Google Hotels sometimes returns
+   booking options instead.
+  */
+
+  const options =
+    property?.booking_options ||
+    property?.prices ||
+    property?.providers ||
+    [];
+
   if (
-    Array.isArray(property?.booking_options) &&
-    property.booking_options.length
+    Array.isArray(options)
   ) {
-    for (const option of property.booking_options) {
-      const link = first(option, [
-        "link",
-        "url"
-      ]);
+    for (
+      const option of options
+    ) {
+      if (
+        !option ||
+        typeof option !== "object"
+      ) {
+        continue;
+      }
+
+      const link = first(
+        option,
+        [
+          "link",
+          "url",
+          "booking_url"
+        ]
+      );
 
       if (link) {
         return link;
@@ -204,25 +428,40 @@ function normalizeBookingUrl(property) {
   return null;
 }
 
-function normalizePrice(property, nights) {
+
+/* ---------------------------------------------------------
+   PRICE
+--------------------------------------------------------- */
+
+function normalizePrice(
+  property,
+  nights
+) {
+  let nightly = null;
+  let total = null;
+
+  /*
+   Main SerpApi Google Hotels
+   price fields.
+  */
+
   const ratePerNight =
-    property?.rate_per_night ||
-    property?.price_per_night ||
-    property?.nightly_price ||
+    property?.rate_per_night ??
+    property?.price_per_night ??
+    property?.nightly_price ??
     null;
 
   const totalPrice =
-    property?.total_price ||
-    property?.total ||
-    property?.price?.total ||
+    property?.total_price ??
+    property?.total ??
     null;
 
-  let nightly = number(ratePerNight);
-  let total = number(totalPrice);
-
   /*
-  SerpApi Google Hotels commonly provides a rate_per_night
-  object. Handle both numeric and object formats.
+   rate_per_night can be an object:
+   {
+     extracted_price: 120,
+     price: "$120"
+   }
   */
 
   if (
@@ -230,232 +469,456 @@ function normalizePrice(property, nights) {
     typeof ratePerNight === "object"
   ) {
     nightly = number(
-      first(ratePerNight, [
-        "extracted_price",
-        "price",
-        "value"
-      ])
+      first(
+        ratePerNight,
+        [
+          "extracted_price",
+          "price",
+          "value"
+        ]
+      )
     );
 
-    if (total == null) {
-      total = number(
-        first(ratePerNight, [
-          "total",
-          "extracted_total"
-        ])
-      );
-    }
+    total = number(
+      first(
+        ratePerNight,
+        [
+          "extracted_total",
+          "total"
+        ]
+      )
+    );
+  } else {
+    nightly =
+      number(ratePerNight);
+  }
+
+  if (total == null) {
+    total =
+      number(totalPrice);
   }
 
   /*
-  Some Google Hotels results provide the total through
-  a price object.
+   Some SerpApi responses have
+   a price object.
   */
 
   if (
     property?.price &&
     typeof property.price === "object"
   ) {
-    if (total == null) {
-      total = number(
-        first(property.price, [
-          "extracted_total",
-          "total",
-          "value"
-        ])
-      );
-    }
-
     if (nightly == null) {
       nightly = number(
-        first(property.price, [
-          "extracted_price",
-          "price",
-          "value"
-        ])
+        first(
+          property.price,
+          [
+            "extracted_price",
+            "price",
+            "value"
+          ]
+        )
+      );
+    }
+
+    if (total == null) {
+      total = number(
+        first(
+          property.price,
+          [
+            "extracted_total",
+            "total",
+            "value"
+          ]
+        )
       );
     }
   }
 
-  if (total == null && nightly != null) {
-    total = nightly * nights;
+  /*
+   Sometimes the total appears
+   as a string in the property.
+  */
+
+  if (total == null) {
+    total = number(
+      property?.total_price ??
+      property?.total_price_with_taxes ??
+      property?.price_total ??
+      null
+    );
   }
 
-  if (nightly == null && total != null) {
-    nightly = total / nights;
+  /*
+   Calculate missing side.
+  */
+
+  if (
+    total == null &&
+    nightly != null
+  ) {
+    total =
+      nightly * nights;
+  }
+
+  if (
+    nightly == null &&
+    total != null
+  ) {
+    nightly =
+      total / nights;
   }
 
   return {
     current: nightly,
     price_per_night: nightly,
     total_price: total,
-    currency: "EUR"
+    currency:
+      property?.currency ||
+      "EUR"
   };
 }
 
-function normalizeProperty(property, checkIn, checkOut) {
-  const nights = nightsBetween(
-    checkIn,
-    checkOut
-  );
 
-  const price = normalizePrice(
-    property,
-    nights
-  );
+/* ---------------------------------------------------------
+   NORMALIZE PROPERTY
+--------------------------------------------------------- */
+
+function normalizeProperty(
+  property,
+  checkIn,
+  checkOut
+) {
+  const nights =
+    nightsBetween(
+      checkIn,
+      checkOut
+    );
+
+  const price =
+    normalizePrice(
+      property,
+      nights
+    );
 
   const gps =
     property?.gps_coordinates ||
     property?.coordinates ||
     {};
 
-  const rating =
+  const ratingRaw =
     property?.overall_rating ??
     property?.rating ??
     null;
 
-  const reviews =
+  const reviewRaw =
     property?.reviews ??
     property?.review_count ??
+    property?.ratings_count ??
     null;
 
-  const stars =
+  const starsRaw =
     property?.hotel_class ??
     property?.star_rating ??
     property?.stars ??
     null;
 
-  let hotelStars = number(stars);
+  let stars =
+    number(starsRaw);
+
+  /*
+   hotel_class may look like:
+   "4-star hotel"
+  */
 
   if (
-    hotelStars == null &&
-    typeof stars === "string"
+    stars == null &&
+    typeof starsRaw === "string"
   ) {
-    const match = stars.match(/([1-5])/);
+    const match =
+      starsRaw.match(
+        /([1-5])/
+      );
 
     if (match) {
-      hotelStars = Number(match[1]);
+      stars =
+        Number(match[1]);
     }
   }
+
+  const images =
+    normalizeImages(
+      property
+    );
+
+  const bookingUrl =
+    normalizeBookingUrl(
+      property
+    );
+
+  const address =
+    buildAddress(
+      property
+    );
+
+  const name =
+    cleanText(
+      property?.name ||
+      property?.hotel_name ||
+      property?.title
+    ) ||
+    "Unnamed hotel";
+
+  const brand =
+    cleanText(
+      property?.brand ||
+      property?.brand_name ||
+      property?.chain ||
+      property?.hotel_brand
+    ) || null;
+
+  const chain =
+    cleanText(
+      property?.chain ||
+      property?.chain_name ||
+      property?.brand ||
+      property?.brand_name
+    ) || null;
 
   return {
     hotel_id:
       property?.property_token ||
       property?.place_id ||
       property?.id ||
-      `${cleanText(property?.name)}|${cleanText(buildAddress(property))}`,
+      `${name}|${address || ""}`,
 
-    name:
-      cleanText(property?.name) ||
-      "Unnamed hotel",
+    name,
 
-    brand:
-      cleanText(
-        property?.brand ||
-        property?.brand_name ||
-        property?.chain
-      ) || null,
+    brand,
 
-    chain:
-      cleanText(
-        property?.chain ||
-        property?.brand ||
-        property?.brand_name
-      ) || null,
+    brand_name:
+      property?.brand_name ||
+      brand,
+
+    chain,
+
+    chain_name:
+      property?.chain_name ||
+      chain,
+
+    hotel_brand:
+      property?.hotel_brand ||
+      brand,
+
+    property_brand:
+      property?.property_brand ||
+      brand,
 
     location: {
-      address: buildAddress(property),
+      address,
 
       latitude:
-        number(gps?.latitude) ??
-        number(property?.latitude),
+        number(
+          gps?.latitude
+        ) ??
+        number(
+          property?.latitude
+        ),
 
       longitude:
-        number(gps?.longitude) ??
-        number(property?.longitude)
+        number(
+          gps?.longitude
+        ) ??
+        number(
+          property?.longitude
+        )
     },
 
     price,
 
     rating: {
-      value: number(rating),
-      votes: number(reviews)
+      value:
+        number(ratingRaw),
+
+      votes:
+        number(reviewRaw)
     },
 
-    stars: hotelStars,
+    stars,
 
     amenities:
-      normalizeAmenities(property),
+      normalizeAmenities(
+        property
+      ),
 
-    images:
-      normalizeImages(property),
+    images,
 
     booking_url:
-      normalizeBookingUrl(property),
+      bookingUrl,
+
+    hotel_url:
+      property?.hotel_url ||
+      null,
+
+    url:
+      property?.link ||
+      property?.url ||
+      null,
 
     description:
-      cleanText(property?.description) || null,
+      cleanText(
+        property?.description
+      ) || null,
 
     property_token:
-      property?.property_token || null,
+      property?.property_token ||
+      null,
+
+    place_id:
+      property?.place_id ||
+      null,
 
     sponsored:
-      Boolean(property?.sponsored),
+      Boolean(
+        property?.sponsored
+      ),
 
-    source: "Google Hotels / SerpApi"
+    source:
+      "Google Hotels / SerpApi"
   };
 }
 
-function dedupeHotels(hotels) {
-  const seen = new Map();
 
-  for (const hotel of hotels) {
-    const key =
+/* ---------------------------------------------------------
+   DEDUPLICATION
+--------------------------------------------------------- */
+
+function dedupeHotels(
+  hotels
+) {
+  const seen =
+    new Map();
+
+  for (
+    const hotel of hotels
+  ) {
+    const id =
       String(
         hotel.hotel_id ||
-        `${hotel.name}|${hotel.location?.address || ""}`
+        ""
       )
+      .toLowerCase()
+      .trim();
+
+    const fallback =
+      `${cleanText(hotel.name)}|${cleanText(hotel.location?.address || "")}`
         .toLowerCase()
         .trim();
+
+    const key =
+      id || fallback;
 
     if (!key) {
       continue;
     }
 
-    const existing = seen.get(key);
+    const existing =
+      seen.get(key);
 
     if (!existing) {
-      seen.set(key, hotel);
+      seen.set(
+        key,
+        hotel
+      );
       continue;
     }
 
     /*
-    Prefer the version that contains a price,
-    image, address or rating.
+     Prefer the hotel record
+     with the most useful data.
     */
 
-    const existingScore =
-      Number(existing.price?.total_price != null) +
-      Number(existing.images?.length > 0) +
-      Number(existing.location?.address != null) +
-      Number(existing.rating?.value != null);
+    const score = (
+      item
+    ) => {
+      let value = 0;
 
-    const newScore =
-      Number(hotel.price?.total_price != null) +
-      Number(hotel.images?.length > 0) +
-      Number(hotel.location?.address != null) +
-      Number(hotel.rating?.value != null);
+      if (
+        item.price?.total_price !=
+        null
+      ) {
+        value += 4;
+      }
 
-    if (newScore > existingScore) {
-      seen.set(key, hotel);
+      if (
+        item.price?.price_per_night !=
+        null
+      ) {
+        value += 2;
+      }
+
+      if (
+        item.images?.length
+      ) {
+        value += 3;
+      }
+
+      if (
+        item.location?.address
+      ) {
+        value += 2;
+      }
+
+      if (
+        item.rating?.value !=
+        null
+      ) {
+        value += 2;
+      }
+
+      if (
+        item.amenities?.length
+      ) {
+        value += 1;
+      }
+
+      if (
+        item.booking_url
+      ) {
+        value += 1;
+      }
+
+      return value;
+    };
+
+    if (
+      score(hotel) >
+      score(existing)
+    ) {
+      seen.set(
+        key,
+        hotel
+      );
     }
   }
 
-  return [...seen.values()];
+  return [
+    ...seen.values()
+  ];
 }
 
-async function fetchSerpApi(params, apiKey) {
-  const url = new URL(SERPAPI_URL);
+
+/* ---------------------------------------------------------
+   SERPAPI REQUEST
+--------------------------------------------------------- */
+
+async function fetchSerpApi(
+  params,
+  apiKey
+) {
+  const url =
+    new URL(
+      SERPAPI_URL
+    );
 
   url.searchParams.set(
     "engine",
@@ -467,7 +930,12 @@ async function fetchSerpApi(params, apiKey) {
     apiKey
   );
 
-  for (const [key, value] of Object.entries(params)) {
+  for (
+    const [
+      key,
+      value
+    ] of Object.entries(params)
+  ) {
     if (
       value !== undefined &&
       value !== null &&
@@ -480,22 +948,27 @@ async function fetchSerpApi(params, apiKey) {
     }
   }
 
-  const response = await fetch(
-    url.toString(),
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
-    }
-  );
+  const response =
+    await fetch(
+      url.toString(),
+      {
+        method: "GET",
 
-  const text = await response.text();
+        headers: {
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+  const text =
+    await response.text();
 
   let data;
 
   try {
-    data = JSON.parse(text);
+    data =
+      JSON.parse(text);
   } catch {
     throw new Error(
       "SerpApi returned invalid JSON."
@@ -518,34 +991,51 @@ async function fetchSerpApi(params, apiKey) {
   return data;
 }
 
-export async function onRequest(context) {
+
+/* ---------------------------------------------------------
+   MAIN CLOUDFLARE FUNCTION
+--------------------------------------------------------- */
+
+export async function onRequest(
+  context
+) {
   const {
     request,
     env,
     waitUntil
   } = context;
 
-  if (request.method === "OPTIONS") {
+  if (
+    request.method ===
+    "OPTIONS"
+  ) {
     return new Response(
       null,
       {
         status: 204,
-        headers: corsHeaders()
+        headers:
+          corsHeaders()
       }
     );
   }
 
-  if (request.method !== "GET") {
+  if (
+    request.method !==
+    "GET"
+  ) {
     return json(
       {
-        error: "Method not allowed."
+        error:
+          "Method not allowed."
       },
       405
     );
   }
 
   const incoming =
-    new URL(request.url);
+    new URL(
+      request.url
+    );
 
   const location =
     incoming.searchParams
@@ -567,14 +1057,13 @@ export async function onRequest(context) {
     );
 
   /*
-  pages controls how many Google Hotels pages
-  are fetched.
+   Number of Google Hotels
+   pages to request.
 
-  Default: 3 pages
-  Approximate result target: up to ~60 hotels
+   3 pages ≈ substantially
+   more than the first 20.
 
-  Maximum: 5 pages
-  This prevents accidental unlimited API usage.
+   Maximum 5 pages.
   */
 
   const requestedPages =
@@ -583,15 +1072,20 @@ export async function onRequest(context) {
         .get("pages") || 3
     );
 
-  const pages = Math.min(
-    Math.max(
-      Number.isFinite(requestedPages)
-        ? Math.floor(requestedPages)
-        : 3,
-      1
-    ),
-    5
-  );
+  const pages =
+    Math.min(
+      Math.max(
+        Number.isFinite(
+          requestedPages
+        )
+          ? Math.floor(
+              requestedPages
+            )
+          : 3,
+        1
+      ),
+      5
+    );
 
   if (!location) {
     return json(
@@ -644,18 +1138,18 @@ export async function onRequest(context) {
     );
   }
 
-  /*
-  Cache the complete multi-page search.
 
-  Identical searches can be served from cache instead
-  of making fresh SerpApi requests.
-  */
+  /* -------------------------------------------------------
+     CACHE
+  ------------------------------------------------------- */
 
   const cache =
     caches.default;
 
   const cacheUrl =
-    new URL(incoming.toString());
+    new URL(
+      incoming.toString()
+    );
 
   cacheUrl.searchParams.set(
     "pages",
@@ -671,24 +1165,35 @@ export async function onRequest(context) {
     );
 
   const cached =
-    await cache.match(cacheKey);
+    await cache.match(
+      cacheKey
+    );
 
   if (cached) {
     return new Response(
       cached.body,
       {
         status: 200,
-        headers: corsHeaders()
+        headers:
+          corsHeaders()
       }
     );
   }
 
+
+  /* -------------------------------------------------------
+     FETCH MULTIPLE PAGES
+  ------------------------------------------------------- */
+
   try {
-    const allProperties = [];
+    const allProperties =
+      [];
 
-    let nextPageToken = null;
+    let nextPageToken =
+      null;
 
-    let pagesFetched = 0;
+    let pagesFetched =
+      0;
 
     for (
       let page = 1;
@@ -696,7 +1201,8 @@ export async function onRequest(context) {
       page++
     ) {
       const params = {
-        q: location,
+        q:
+          location,
 
         check_in_date:
           checkIn,
@@ -717,7 +1223,13 @@ export async function onRequest(context) {
           "en"
       };
 
-      if (nextPageToken) {
+      /*
+       SerpApi pagination.
+      */
+
+      if (
+        nextPageToken
+      ) {
         params.next_page_token =
           nextPageToken;
       }
@@ -730,16 +1242,35 @@ export async function onRequest(context) {
 
       pagesFetched++;
 
-      const properties =
+      /*
+       Google Hotels normally
+       returns properties here.
+      */
+
+      if (
         Array.isArray(
           data?.properties
         )
-          ? data.properties
-          : [];
+      ) {
+        allProperties.push(
+          ...data.properties
+        );
+      }
 
-      allProperties.push(
-        ...properties
-      );
+      /*
+       Fallbacks for alternative
+       response structures.
+      */
+
+      if (
+        Array.isArray(
+          data?.hotels
+        )
+      ) {
+        allProperties.push(
+          ...data.hotels
+        );
+      }
 
       const pagination =
         data?.serpapi_pagination;
@@ -748,22 +1279,37 @@ export async function onRequest(context) {
         pagination?.next_page_token ||
         null;
 
-      if (!nextPageToken) {
+      if (
+        !nextPageToken
+      ) {
         break;
       }
     }
 
+
+    /* -----------------------------------------------------
+       NORMALIZE + DEDUPE
+    ----------------------------------------------------- */
+
+    const normalized =
+      allProperties.map(
+        property =>
+          normalizeProperty(
+            property,
+            checkIn,
+            checkOut
+          )
+      );
+
     const hotels =
       dedupeHotels(
-        allProperties.map(
-          property =>
-            normalizeProperty(
-              property,
-              checkIn,
-              checkOut
-            )
-        )
+        normalized
       );
+
+
+    /* -----------------------------------------------------
+       RESPONSE
+    ----------------------------------------------------- */
 
     const payload = {
       location,
@@ -797,6 +1343,9 @@ export async function onRequest(context) {
         pricing:
           "Live Google Hotels pricing",
 
+        images:
+          true,
+
         pagination:
           true
       }
@@ -804,9 +1353,12 @@ export async function onRequest(context) {
 
     const response =
       new Response(
-        JSON.stringify(payload),
+        JSON.stringify(
+          payload
+        ),
         {
           status: 200,
+
           headers: {
             "Content-Type":
               "application/json; charset=utf-8",
@@ -817,12 +1369,22 @@ export async function onRequest(context) {
         }
       );
 
-    waitUntil(
-      cache.put(
-        cacheKey,
-        response.clone()
-      )
-    );
+    /*
+     Store the complete
+     multi-page result.
+    */
+
+    if (
+      typeof waitUntil ===
+      "function"
+    ) {
+      waitUntil(
+        cache.put(
+          cacheKey,
+          response.clone()
+        )
+      );
+    }
 
     return response;
 
