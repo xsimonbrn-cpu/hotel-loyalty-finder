@@ -1,4 +1,5 @@
-const API_URL = "/api/hotels";
+const API_BASE_URL = "https://hotel-loyalty-finder.pages.dev";
+const API_URL = `${API_BASE_URL}/api/hotels`;
 
 const LOYALTY_PROGRAMS = {
   "Hilton Honors": ["Member", "Silver", "Gold", "Diamond", "Diamond Reserve"],
@@ -627,10 +628,26 @@ async function searchLive() {
       method: "GET"
     });
 
-    const payload = await response.json();
+    const contentType =
+      response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+
+      throw new Error(
+        `API returned ${response.status} ${response.statusText || ""}. ` +
+        `Expected JSON from ${API_URL}.`
+      );
+    }
+
+    const payload =
+      await response.json();
 
     if (!response.ok || payload.error) {
-      throw new Error(payload.error || `Request failed (${response.status})`);
+      throw new Error(
+        payload.error ||
+        `Request failed (${response.status})`
+      );
     }
 
     liveHotels =
@@ -1140,7 +1157,7 @@ function openBookingModal(
     });
 
   fetch(
-    `/api/links?${params.toString()}`,
+    `${API_BASE_URL}/api/links?${params.toString()}`,
     {
       headers: {
         "Accept":
