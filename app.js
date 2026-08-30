@@ -185,7 +185,9 @@ function renderResults() {
 
 function readFilterInputs() {
   state.activePrograms.clear(); state.amenities.clear();
-  document.querySelectorAll('.drawer-check input[type="checkbox"]:checked, [data-filter] input[type="checkbox"]:checked').forEach(input => {
+  /* The original markup has no stable wrapper on every checkbox, so read every
+     checkbox by its declared value instead of relying on a CSS class. */
+  document.querySelectorAll('input[type="checkbox"]:checked').forEach(input => {
     if (input.dataset.type === "amenity") state.amenities.add(input.value);
     else {
       const program = Object.entries(PROGRAM_TO_CHAIN).find(([, chain]) => normaliseText(chain) === normaliseText(input.value))?.[0] || (LOYALTY_PROGRAMS[input.value] ? input.value : null);
@@ -229,7 +231,7 @@ function setup() {
   $("searchButton")?.addEventListener("click", searchLive);
   $("openFilters")?.addEventListener("click", () => { const drawer = $("filterDrawer"); if (drawer) { drawer.classList.add("is-open"); drawer.setAttribute("aria-hidden", "false"); } });
   $("closeFilters")?.addEventListener("click", () => { const drawer = $("filterDrawer"); if (drawer) { drawer.classList.remove("is-open"); drawer.setAttribute("aria-hidden", "true"); } });
-  document.querySelectorAll('.drawer-check input[type="checkbox"], [data-filter] input[type="checkbox"]').forEach(input => input.addEventListener("change", () => { readFilterInputs(); renderResults(); }));
+  document.querySelectorAll('input[type="checkbox"]').forEach(input => input.addEventListener("change", () => { readFilterInputs(); renderResults(); }));
   $("sort")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
   $("sortSelect")?.addEventListener("change", event => { state.sort = event.target.value; renderResults(); });
 }
