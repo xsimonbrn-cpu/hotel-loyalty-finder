@@ -7,17 +7,6 @@ Google Hotels via SerpApi
 
 Required Cloudflare Secret:
 SERPAPI_KEY
-
-Features:
-- Multiple Google Hotels pages
-- More than 20 hotels
-- Live prices
-- Hotel images
-- Ratings / reviews
-- Amenities
-- Hotel / brand information
-- Booking links
-- Cloudflare caching
 */
 
 const SERPAPI_URL =
@@ -70,13 +59,12 @@ function number(value) {
       : null;
   }
 
-  if (
-    typeof value === "object"
-  ) {
+  if (typeof value === "object") {
     return number(
       value.extracted_lowest ??
       value.extracted_price ??
       value.extracted_total ??
+      value.lowest ??
       value.price ??
       value.total ??
       value.value ??
@@ -84,10 +72,9 @@ function number(value) {
     );
   }
 
-  let text =
-    String(value)
-      .replace(/[^\d.,-]/g, "")
-      .trim();
+  let text = String(value)
+    .replace(/[^\d.,-]/g, "")
+    .trim();
 
   if (!text) {
     return null;
@@ -101,47 +88,35 @@ function number(value) {
       text.lastIndexOf(",") >
       text.lastIndexOf(".")
     ) {
-      text =
-        text
-          .replace(/\./g, "")
-          .replace(",", ".");
+      text = text
+        .replace(/\./g, "")
+        .replace(",", ".");
     } else {
-      text =
-        text.replace(/,/g, "");
+      text = text.replace(/,/g, "");
     }
-  } else if (
-    text.includes(",")
-  ) {
-    const parts =
-      text.split(",");
+  } else if (text.includes(",")) {
+    const parts = text.split(",");
 
     if (
       parts.length === 2 &&
       parts[1].length <= 2
     ) {
-      text =
-        text.replace(",", ".");
+      text = text.replace(",", ".");
     } else {
-      text =
-        text.replace(/,/g, "");
+      text = text.replace(/,/g, "");
     }
-  } else if (
-    text.includes(".")
-  ) {
-    const parts =
-      text.split(".");
+  } else if (text.includes(".")) {
+    const parts = text.split(".");
 
     if (
       parts.length === 2 &&
       parts[1].length === 3
     ) {
-      text =
-        text.replace(".", "");
+      text = text.replace(".", "");
     }
   }
 
-  const parsed =
-    Number(text);
+  const parsed = Number(text);
 
   return Number.isFinite(parsed)
     ? parsed
@@ -149,9 +124,7 @@ function number(value) {
 }
 
 function first(obj, keys) {
-  for (
-    const key of keys
-  ) {
+  for (const key of keys) {
     if (
       obj &&
       obj[key] !== null &&
@@ -187,15 +160,113 @@ function nightsBetween(
       ) / 86400000
     );
 
-  return Math.max(
-    diff,
-    1
+  return Math.max(diff, 1);
+}
+
+/* =========================================================
+   URLS
+========================================================= */
+
+function isHttpUrl(value) {
+  return (
+    typeof value === "string" &&
+    /^https?:\/\//i.test(
+      value.trim()
+    )
   );
 }
 
-/* ---------------------------------------------------------
-ADDRESS
---------------------------------------------------------- */
+function extractUrl(value) {
+  if (isHttpUrl(value)) {
+    return value.trim();
+  }
+
+  if (
+    value &&
+    typeof value === "object"
+  ) {
+    return (
+      extractUrl(value.url) ||
+      extractUrl(value.link) ||
+      extractUrl(value.website) ||
+      extractUrl(value.website_url)
+    );
+  }
+
+  return null;
+}
+
+function normalizeUrls(property) {
+  /*
+    Google Hotels / SerpApi commonly exposes
+    the property's direct link through `link`.
+
+    Prefer explicit website fields if available.
+  */
+
+  const officialUrl =
+    extractUrl(
+      first(property, [
+        "official_website",
+        "official_website_url",
+        "hotel_website",
+        "website",
+        "website_url",
+        "link"
+      ])
+    );
+
+  let bookingUrl =
+    extractUrl(
+      first(property, [
+        "booking_url",
+        "hotel_url"
+      ])
+    );
+
+  const providers =
+    property?.prices ||
+    property?.booking_options ||
+    property?.providers ||
+    [];
+
+  if (
+    Array.isArray(providers)
+  ) {
+    for (
+      const provider of providers
+    ) {
+      if (
+        !provider ||
+        typeof provider !== "object"
+      ) {
+        continue;
+      }
+
+      const url =
+        extractUrl(provider);
+
+      if (
+        url &&
+        !bookingUrl
+      ) {
+        bookingUrl = url;
+      }
+    }
+  }
+
+  return {
+    official_url:
+      officialUrl,
+
+    booking_url:
+      bookingUrl
+  };
+}
+
+/* =========================================================
+   ADDRESS
+========================================================= */
 
 function buildAddress(property) {
   const address =
@@ -205,16 +276,14 @@ function buildAddress(property) {
     null;
 
   if (
-    typeof address ===
-    "string"
+    typeof address === "string"
   ) {
     return cleanText(address);
   }
 
   if (
     address &&
-    typeof address ===
-    "object"
+    typeof address === "object"
   ) {
     const parts = [
       address.street,
@@ -236,107 +305,166 @@ function buildAddress(property) {
   return null;
 }
 
-/* ---------------------------------------------------------
-AMENITIES
---------------------------------------------------------- */
+/* =========================================================
+   AMENITIES
+========================================================= */
+
+function canonicalAmenity(
+  value
+) {
+  const text =
+    cleanText(value)
+      .normalize("NFD")
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+      .toLowerCase();
+
+  if (
+    /pool|swimming|indoor pool|outdoor pool|infinity pool/.test(
+      text
+    )
+  ) {
+    return "Pool";
+  }
+
+  if (
+    /spa|wellness|wellness centre|wellness center|massage|thermal/.test(
+      text
+    )
+  ) {
+    return "Spa";
+  }
+
+  if (
+    /sauna|steam room|steam bath|hammam|hamam|infrared/.test(
+      text
+    )
+  ) {
+    return "Sauna";
+  }
+
+  if (
+    /fitness|gym|fitness centre|fitness center|workout/.test(
+      text
+    )
+  ) {
+    return "Fitness";
+  }
+
+  if (
+    /breakfast|continental breakfast|buffet breakfast/.test(
+      text
+    )
+  ) {
+    return "Breakfast";
+  }
+
+  if (
+    /parking|car park|garage|valet parking|private parking/.test(
+      text
+    )
+  ) {
+    return "Parking";
+  }
+
+  if (
+    /restaurant|dining|dining room/.test(
+      text
+    )
+  ) {
+    return "Restaurant";
+  }
+
+  if (
+    /\bbar\b|cocktail bar|lounge bar/.test(
+      text
+    )
+  ) {
+    return "Bar";
+  }
+
+  return null;
+}
 
 function normalizeAmenities(
   property
 ) {
-  const result = [];
-
   const raw =
     property?.amenities ||
     property?.facilities ||
+    property?.amenity ||
     [];
 
-  if (Array.isArray(raw)) {
+  const values = [];
+
+  if (
+    Array.isArray(raw)
+  ) {
     for (
       const item of raw
     ) {
       if (
-        typeof item ===
-        "string"
+        typeof item === "string"
       ) {
-        const value =
-          cleanText(item);
-
-        if (value) {
-          result.push(value);
-        }
-
-        continue;
-      }
-
-      if (
+        values.push(item);
+      } else if (
         item &&
-        typeof item ===
-        "object"
+        typeof item === "object"
       ) {
         const value =
-          cleanText(
-            first(
-              item,
-              [
-                "name",
-                "label",
-                "title"
-              ]
-            )
-          );
+          first(item, [
+            "name",
+            "label",
+            "title",
+            "text"
+          ]);
 
         if (value) {
-          result.push(value);
+          values.push(value);
         }
       }
     }
+  } else if (
+    typeof raw === "string"
+  ) {
+    values.push(
+      ...raw.split(
+        /[,;|]/
+      )
+    );
   }
 
-  const textSources = [
+  values.push(
     property?.description,
     property?.amenities_text,
-    property?.hotel_amenities
-  ]
-    .filter(Boolean)
-    .join(" ");
+    property?.hotel_amenities,
+    property?.facilities_text
+  );
 
-  const detected = [
-    ["Pool", /pool|swimming/i],
-    ["Spa", /spa|wellness/i],
-    ["Fitness", /fitness|gym/i],
-    ["Breakfast", /breakfast/i],
-    ["Parking", /parking/i],
-    ["Restaurant", /restaurant/i],
-    ["Bar", /\bbar\b/i],
-    ["Sauna", /sauna/i]
-  ];
+  const result = [];
 
   for (
-    const [
-      name,
-      pattern
-    ] of detected
+    const value of
+    values.filter(Boolean)
   ) {
-    if (
-      pattern.test(
-        textSources
-      )
-    ) {
-      result.push(name);
+    const amenity =
+      canonicalAmenity(value);
+
+    if (amenity) {
+      result.push(amenity);
     }
   }
 
   return [
-    ...new Set(
-      result
-        .filter(Boolean)
-    )
+    ...new Set(result)
   ];
 }
 
-/* ---------------------------------------------------------
-IMAGES
---------------------------------------------------------- */
+/* =========================================================
+   IMAGES
+========================================================= */
 
 function normalizeImages(
   property
@@ -346,8 +474,7 @@ function normalizeImages(
   const addImage =
     value => {
       if (
-        typeof value ===
-          "string" &&
+        typeof value === "string" &&
         value.trim()
       ) {
         images.push(
@@ -366,8 +493,7 @@ function normalizeImages(
       property.images
     ) {
       if (
-        typeof item ===
-        "string"
+        typeof item === "string"
       ) {
         addImage(item);
         continue;
@@ -375,22 +501,18 @@ function normalizeImages(
 
       if (
         item &&
-        typeof item ===
-        "object"
+        typeof item === "object"
       ) {
         addImage(
-          first(
-            item,
-            [
-              "original_image",
-              "original",
-              "image",
-              "image_url",
-              "url",
-              "src",
-              "thumbnail"
-            ]
-          )
+          first(item, [
+            "original_image",
+            "original",
+            "image",
+            "image_url",
+            "url",
+            "src",
+            "thumbnail"
+          ])
         );
       }
     }
@@ -416,109 +538,14 @@ function normalizeImages(
     property?.thumbnail_url
   );
 
-  if (
-    property?.image &&
-    typeof property.image ===
-      "object"
-  ) {
-    addImage(
-      first(
-        property.image,
-        [
-          "original_image",
-          "image",
-          "url",
-          "src"
-        ]
-      )
-    );
-  }
-
   return [
     ...new Set(images)
   ];
 }
 
-/* ---------------------------------------------------------
-BOOKING URL
---------------------------------------------------------- */
-
-function normalizeBookingUrl(
-  property
-) {
-  const direct =
-    first(
-      property,
-      [
-        "link",
-        "hotel_url",
-        "booking_url",
-        "website",
-        "url"
-      ]
-    );
-
-  if (
-    typeof direct ===
-      "string" &&
-    /^https?:\/\//i.test(
-      direct
-    )
-  ) {
-    return direct;
-  }
-
-  const providers =
-    property?.prices ||
-    property?.booking_options ||
-    property?.providers ||
-    [];
-
-  if (
-    Array.isArray(
-      providers
-    )
-  ) {
-    for (
-      const provider of
-      providers
-    ) {
-      if (
-        !provider ||
-        typeof provider !==
-          "object"
-      ) {
-        continue;
-      }
-
-      const link =
-        first(
-          provider,
-          [
-            "link",
-            "url",
-            "booking_url"
-          ]
-        );
-
-      if (
-        typeof link ===
-          "string" &&
-        /^https?:\/\//i.test(
-          link
-        )
-      ) {
-        return link;
-      }
-    }
-  }
-
-  return null;
-}
-
-/* ---------------------------------------------------------
-PRICE
---------------------------------------------------------- */
+/* =========================================================
+   PRICE
+========================================================= */
 
 function normalizePrice(
   property,
@@ -578,9 +605,6 @@ function normalizePrice(
       );
   }
 
-  /*
-    Provider fallback.
-  */
   if (
     Array.isArray(
       property?.prices
@@ -591,13 +615,21 @@ function normalizePrice(
       property.prices
     ) {
       if (
+        !provider ||
+        typeof provider !== "object"
+      ) {
+        continue;
+      }
+
+      if (
         nightly == null
       ) {
         nightly =
           number(
             provider?.rate_per_night ??
             provider?.price_per_night ??
-            provider?.price
+            provider?.price ??
+            null
           );
       }
 
@@ -608,7 +640,8 @@ function normalizePrice(
           number(
             provider?.total_rate ??
             provider?.total_price ??
-            provider?.total
+            provider?.total ??
+            null
           );
       }
 
@@ -639,15 +672,17 @@ function normalizePrice(
 
   return {
     current: nightly,
-    price_per_night: nightly,
-    total_price: total,
+    price_per_night:
+      nightly,
+    total_price:
+      total,
     currency: "EUR"
   };
 }
 
-/* ---------------------------------------------------------
-NORMALIZE PROPERTY
---------------------------------------------------------- */
+/* =========================================================
+   NORMALIZE PROPERTY
+========================================================= */
 
 function normalizeProperty(
   property,
@@ -664,6 +699,16 @@ function normalizeProperty(
     normalizePrice(
       property,
       nights
+    );
+
+  const images =
+    normalizeImages(
+      property
+    );
+
+  const urls =
+    normalizeUrls(
+      property
     );
 
   const gps =
@@ -684,16 +729,6 @@ function normalizeProperty(
     ) ||
     "Unnamed hotel";
 
-  const images =
-    normalizeImages(
-      property
-    );
-
-  const bookingUrl =
-    normalizeBookingUrl(
-      property
-    );
-
   let hotelClass =
     property?.extracted_hotel_class ??
     property?.hotel_class ??
@@ -706,8 +741,7 @@ function normalizeProperty(
 
   if (
     stars == null &&
-    typeof hotelClass ===
-      "string"
+    typeof hotelClass === "string"
   ) {
     const match =
       hotelClass.match(
@@ -716,9 +750,7 @@ function normalizeProperty(
 
     if (match) {
       stars =
-        Number(
-          match[1]
-        );
+        Number(match[1]);
     }
   }
 
@@ -766,6 +798,7 @@ function normalizeProperty(
     name,
 
     brand,
+
     brand_name:
       cleanText(
         property?.brand_name ||
@@ -774,6 +807,7 @@ function normalizeProperty(
       ) || null,
 
     chain,
+
     chain_name:
       cleanText(
         property?.chain_name ||
@@ -832,18 +866,31 @@ function normalizeProperty(
     images,
 
     thumbnail:
-      images[0] || null,
+      images[0] ||
+      null,
 
+    /*
+      Direct hotel website.
+    */
+    official_url:
+      urls.official_url,
+
+    /*
+      Booking/provider fallback.
+    */
     booking_url:
-      bookingUrl,
+      urls.booking_url,
 
+    /*
+      Backwards compatibility.
+    */
     hotel_url:
-      property?.hotel_url ||
+      urls.official_url ||
       null,
 
     url:
-      property?.link ||
-      property?.url ||
+      urls.official_url ||
+      urls.booking_url ||
       null,
 
     description:
@@ -869,9 +916,9 @@ function normalizeProperty(
   };
 }
 
-/* ---------------------------------------------------------
-DEDUPLICATION
---------------------------------------------------------- */
+/* =========================================================
+   DEDUPE
+========================================================= */
 
 function dedupeHotels(
   hotels
@@ -919,7 +966,13 @@ function dedupeHotels(
       if (
         hotel.amenities?.length
       ) {
-        value += 1;
+        value += 2;
+      }
+
+      if (
+        hotel.official_url
+      ) {
+        value += 4;
       }
 
       if (
@@ -932,7 +985,8 @@ function dedupeHotels(
     };
 
   for (
-    const hotel of hotels
+    const hotel of
+    hotels
   ) {
     const id =
       String(
@@ -986,9 +1040,9 @@ function dedupeHotels(
   ];
 }
 
-/* ---------------------------------------------------------
-SERPAPI REQUEST
---------------------------------------------------------- */
+/* =========================================================
+   SERPAPI
+========================================================= */
 
 async function fetchSerpApi(
   params,
@@ -1071,9 +1125,9 @@ async function fetchSerpApi(
   return data;
 }
 
-/* ---------------------------------------------------------
-MAIN CLOUDFLARE FUNCTION
---------------------------------------------------------- */
+/* =========================================================
+   MAIN
+========================================================= */
 
 export async function onRequest(
   context
@@ -1119,26 +1173,31 @@ export async function onRequest(
   const location =
     incoming.searchParams
       .get("location")
-      ?.trim() || "";
+      ?.trim() ||
+    "";
 
   const checkIn =
     incoming.searchParams
-      .get("check_in") || "";
+      .get("check_in") ||
+    "";
 
   const checkOut =
     incoming.searchParams
-      .get("check_out") || "";
+      .get("check_out") ||
+    "";
 
   const adults =
     Number(
       incoming.searchParams
-        .get("adults") || 2
+        .get("adults") ||
+      2
     );
 
   const requestedPages =
     Number(
       incoming.searchParams
-        .get("pages") || 3
+        .get("pages") ||
+      3
     );
 
   const pages =
@@ -1207,9 +1266,7 @@ export async function onRequest(
     );
   }
 
-  /* -------------------------------------------------------
-  CACHE
-  ------------------------------------------------------- */
+  /* CACHE */
 
   const cache =
     caches.default;
@@ -1241,16 +1298,13 @@ export async function onRequest(
     return new Response(
       cached.body,
       {
-        status: cached.status,
+        status:
+          cached.status,
         headers:
           corsHeaders()
       }
     );
   }
-
-  /* -------------------------------------------------------
-  FETCH MULTIPLE PAGES
-  ------------------------------------------------------- */
 
   try {
     const allProperties =
@@ -1304,10 +1358,6 @@ export async function onRequest(
 
       pagesFetched++;
 
-      /*
-        Main Google Hotels
-        property array.
-      */
       if (
         Array.isArray(
           data?.properties
@@ -1318,9 +1368,6 @@ export async function onRequest(
         );
       }
 
-      /*
-        Fallback.
-      */
       if (
         Array.isArray(
           data?.hotels
@@ -1396,6 +1443,9 @@ export async function onRequest(
           true,
 
         pagination:
+          true,
+
+        official_hotel_links:
           true
       }
     };
