@@ -1,4 +1,4 @@
-const API_URL = new URL("/api/hotels", window.location.origin).toString();
+const API_URL = "/api/hotels";
 
 const LOYALTY_PROGRAMS = {
   "Hilton Honors": ["Member", "Silver", "Gold", "Diamond", "Diamond Reserve"],
@@ -224,7 +224,6 @@ const state = {
 
 let liveHotels = [];
 let searchPerformed = false;
-let liveTotalCount = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -268,16 +267,14 @@ function first(obj, keys) {
 }
 
 function extractHotels(payload) {
-  const candidates = [
+  const possible = [
     payload?.hotels,
     payload?.data?.hotels,
-    payload?.properties,
-    payload?.data?.properties,
     payload?.results,
     payload?.data?.results,
-    Array.isArray(payload?.data) ? payload.data : null
+    payload?.data
   ];
-  return candidates.find(Array.isArray) || [];
+  return possible.find(Array.isArray) || [];
 }
 
 function normalizeAmenities(hotel) {
@@ -310,8 +307,8 @@ function normalizeHotel(hotel) {
     price.nightly ??
     null;
 
-  let total = number(totalRaw);
-  let nightly = number(nightlyRaw);
+  let total = toNumber(totalRaw);
+  let nightly = toNumber(nightlyRaw);
 
   const images =
     Array.isArray(hotel?.images)
@@ -360,7 +357,7 @@ function normalizeHotel(hotel) {
     image,
 
     rating:
-      number(
+      toNumber(
         rating?.value ??
         hotel?.overall_rating ??
         hotel?.rating_value ??
@@ -369,14 +366,14 @@ function normalizeHotel(hotel) {
       ),
 
     reviewCount:
-      number(
+      toNumber(
         rating?.votes ??
         hotel?.reviews ??
         hotel?.review_count
       ),
 
     stars:
-      number(
+      toNumber(
         hotel?.stars ??
         hotel?.hotel_class ??
         null
@@ -406,7 +403,12 @@ function normalizeHotel(hotel) {
       null,
 
     url:
-      first(hotel, ["booking_url", "hotel_url", "url", "link"]),
+      normalizeBookingUrl(
+        hotel?.booking_url ??
+        hotel?.hotel_url ??
+        hotel?.url ??
+        null
+      ),
 
     isPaid:
       Boolean(
@@ -425,53 +427,30 @@ function normalizeBrandText(value) {
     .trim();
 }
 
-function classifyHotel(hotelOrName) {
-  const hotel = typeof hotelOrName === "object" && hotelOrName !== null
-    ? hotelOrName
-    : { name: hotelOrName };
+function classifyHotel(name) {
+  const text = normalizeBrandText(name);
 
-  const searchable = [
-    hotel.name, hotel.hotel_name, hotel.title,
-    hotel.brand, hotel.brand_name,
-    hotel.chain, hotel.chain_name,
-    hotel.hotel_brand, hotel.property_brand,
-    hotel.description
-  ].filter(Boolean).map(normalizeBrandText).join(" ");
+  for (const [needle, chain, brand, program] of PROGRAM_ALIASES) {
+    const normalizedNeedle =
+      normalizeBrandText(needle);
 
-  const rules = PROGRAM_ALIASES
-    .map(([needle, chain, brand, program]) => ({ needle, chain, brand, program }))
-    .sort((a, b) =>
-      normalizeBrandText(b.needle).length - normalizeBrandText(a.needle).length
-    );
-
-  for (const rule of rules) {
-    const needle = normalizeBrandText(rule.needle);
-    if (needle && searchable.includes(needle)) {
-      return { chain: rule.chain, brand: rule.brand, program: rule.program };
+    if (
+      normalizedNeedle &&
+      text.includes(normalizedNeedle)
+    ) {
+      return {
+        chain,
+        brand,
+        program
+      };
     }
   }
 
-  return { chain: "Other", brand: "Other", program: null };
-}
-
-function dedupeHotels(hotels) {
-  const seen = new Map();
-
-  for (const hotel of hotels) {
-    const key = normalizeBrandText(
-      hotel.id ||
-      hotel.name ||
-      `${hotel.address || ""}|${hotel.latitude || ""}|${hotel.longitude || ""}`
-    );
-    if (!key) continue;
-
-    const previous = seen.get(key);
-    if (!previous || (hotel.total != null && previous.total == null)) {
-      seen.set(key, hotel);
-    }
-  }
-
-  return [...seen.values()];
+  return {
+    chain: "Other",
+    brand: "Other",
+    program: null
+  };
 }
 
 function benefitsFor(program) {
@@ -487,7 +466,7 @@ function amexFor(hotel, program, brand) {
 }
 
 function enrich(hotel) {
-  const cls = classifyHotel(hotel.raw || hotel);
+  const cls = classifyHotel(hotel.name);
   const n = nights();
 
   let total = hotel.total;
@@ -563,13 +542,7 @@ async function searchLive() {
       throw new Error(payload.error || `Request failed (${response.status})`);
     }
 
-    const extracted = extractHotels(payload);
-    liveHotels = dedupeHotels(extracted.map(normalizeHotel));
-    liveTotalCount = number(
-      payload?.total_count ??
-      payload?.data?.total_count ??
-      extracted.length
-    );
+    liveHotels = extractHotels(payload).map(normalizeHotel);
     searchPerformed = true;
     render();
   } catch (error) {
@@ -611,6 +584,11 @@ function amenityChip(name) {
 }
 
 
+function showHotel(hotel) {
+  // Only display hotels that belong to one of the configured programs.
+  // This keeps unrelated properties out of the main loyalty search.
+  return Boolean(hotel.program);
+}
 
 function render() {
   const n = nights();
@@ -622,7 +600,7 @@ function render() {
   }
 
   if (state.activePrograms.size) {
-    hotels = hotels.filter(h => state.activePrograms.has(h.program));
+    hotels = hotels.filter(h => state.activePrograms.has(h.chain));
   }
 
   if (state.amenities.size) {
@@ -666,7 +644,7 @@ function render() {
   }
 
   $("resultMeta").textContent =
-    `${hotels.length} shown · ${liveTotalCount ?? liveHotels.length} found · ${formatDate($("checkIn").value)} – ${formatDate($("checkOut").value)} · ${n} nights · ${$("guests").value} guests`;
+    `${hotels.length} hotels · ${formatDate($("checkIn").value)} – ${formatDate($("checkOut").value)} · ${n} nights · ${$("guests").value} guests`;
 
   if (!hotels.length) {
     $("results").innerHTML = "";
