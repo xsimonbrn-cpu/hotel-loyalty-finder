@@ -66,19 +66,44 @@ function price(p,nights){
  if(total==null&&night!=null)total=night*nights;if(night==null&&total!=null)night=total/nights;return {night,total,available:night!=null||total!=null}
 }
 function starValue(p){
- const raw=first(p,["extracted_hotel_class","hotel_class","star_rating","stars","hotel_stars","hotel_classification"]);
- if(typeof raw==="number")return raw;
- const s=String(raw??"");
- let m=s.match(/([1-5](?:[.,][05])?)\s*(?:-|\s)?\s*star/i);if(m)return Number(m[1].replace(",","."));m=s.match(/([1-5])\s*[★☆]/);if(m)return Number(m[1]);
- return num(raw)
+ const raw=first(p,["extracted_hotel_class","hotel_class","hotel_classification","star_rating","stars","hotel_stars","classification"]);
+ if(typeof raw==="number"&&raw>=1&&raw<=5)return raw;
+ const candidates=[raw,p?.type,p?.description,p?.title,p?.name,p?.property_type];
+ for(const value of candidates){
+   const s=String(value??"");
+   let m=s.match(/(?:^|\s)([1-5](?:[.,][05])?)\s*(?:-\s*)?star(?:\s+hotel)?/i);if(m)return Number(m[1].replace(",","."));
+   m=s.match(/([1-5])\s*[★☆]/);if(m)return Number(m[1]);
+ }
+ const n=num(raw);return n!=null&&n>=1&&n<=5?n:null;
 }
 function normalize(p,ci,co){
  const nights=Math.max(1,Math.round((new Date(`${co}T00:00:00`)-new Date(`${ci}T00:00:00`))/86400000)),c=classify(p),pr=price(p,nights),g=p?.gps_coordinates||p?.coordinates||{},imgs=images(p);
- return {hotel_id:p?.property_token||p?.place_id||p?.id||`${p?.name}|${address(p)}`,name:clean(p?.name||p?.hotel_name||p?.title)||"Unnamed hotel",brand:c.brand,chain:c.chain,program:c.program,stars:starValue(p),rating:num(p?.overall_rating??p?.rating??p?.rating_value),reviews:num(p?.reviews??p?.review_count??p?.ratings_count),amenities:amenities(p),images:imgs,thumbnail:imgs[0]||null,address:address(p),latitude:num(g.latitude??p?.latitude),longitude:num(g.longitude??p?.longitude),official_url:urls(p).official_url,booking_url:urls(p).booking_url,property_token:p?.property_token||null,price:pr,sponsored:Boolean(p?.sponsored),points:first(p,["points","loyalty_points","reward_points"])}
+ return {hotel_id:p?.property_token||p?.place_id||p?.id||`${p?.name}|${address(p)}`,name:clean(p?.name||p?.hotel_name||p?.title)||"Unnamed hotel",brand:c.brand,chain:c.chain,program:c.program,stars:starValue(p),hotel_class:first(p,["hotel_class","hotel_classification"]),rating:num(p?.overall_rating??p?.rating??p?.rating_value),reviews:num(p?.reviews??p?.review_count??p?.ratings_count),amenities:amenities(p),images:imgs,thumbnail:imgs[0]||null,address:address(p),latitude:num(g.latitude??p?.latitude),longitude:num(g.longitude??p?.longitude),official_url:urls(p).official_url,booking_url:urls(p).booking_url,property_token:p?.property_token||null,price:pr,sponsored:Boolean(p?.sponsored),points:first(p,["points","loyalty_points","reward_points"])}
 }
 function dedupe(a){const m=new Map();for(const h of a){const k=String(h.hotel_id||`${h.name}|${h.address}`).toLowerCase();if(!m.has(k)||score(h)>score(m.get(k)))m.set(k,h)}return [...m.values()]}
 function score(h){return (h.price.available?5:0)+(h.images.length?4:0)+(h.stars?3:0)+(h.rating?2:0)+(h.official_url?3:0)+(h.amenities.length?3:0)}
 async function serp(params,key){const u=new URL(SERPAPI_URL);u.searchParams.set("engine","google_hotels");u.searchParams.set("api_key",key);for(const[k,v]of Object.entries(params))if(v!==undefined&&v!==null&&v!=="")u.searchParams.set(k,String(v));const r=await fetch(u,{headers:{Accept:"application/json"}}),d=await r.json();if(!r.ok||d.error)throw new Error(d.error||`SerpApi ${r.status}`);return d}
+async function hydrateMissingStars(hotels,key,ci,co,adults){
+ const pending=hotels.filter(h=>h.stars==null&&h.property_token);
+ if(!pending.length)return hotels;
+ let cursor=0;
+ async function worker(){
+   while(true){
+     const i=cursor++;if(i>=pending.length)break;
+     const h=pending[i];
+     try{
+       const data=await serp({property_token:h.property_token,check_in_date:ci,check_out_date:co,adults,currency:"EUR",gl:"de",hl:"en"},key);
+       const source=data?.properties?.[0]||data?.hotel||data;
+       const stars=starValue(source);
+       if(stars!=null){h.stars=stars;h.hotel_class=source?.hotel_class??h.hotel_class;}
+     }catch(_e){}
+   }
+ }
+ const workers=Array.from({length:Math.min(5,pending.length)},worker);
+ await Promise.all(workers);
+ return hotels;
+}
+
 export async function onRequest(context){
  const {request,env}=context;if(request.method==="OPTIONS")return new Response(null,{status:204,headers:headers(false)});if(request.method!=="GET")return json({error:"Method not allowed"},405);
  const q = new URL(request.url);
@@ -97,8 +122,8 @@ export async function onRequest(context){
  if(requestedProgram)queries.push({...base,q:`${location} ${requestedProgram.replace(" Honors","").replace(" Bonvoy","").replace(" One Rewards","").replace(" Rewards","")} hotels`});
  let all=[],seen=new Set();
  async function collect(qp,emit){let token=null;for(let page=0;page<pages;page++){const data=await serp(token?{...qp,next_page_token:token}:qp,env.SERPAPI_KEY);const props=[...(Array.isArray(data.properties)?data.properties:[]),...(Array.isArray(data.hotels)?data.hotels:[])];for(const p of props){const h=normalize(p,ci,co),k=String(h.hotel_id).toLowerCase();if(!seen.has(k)){seen.add(k);all.push(h)}}if(emit)emit({type:"hotels",hotels:dedupe(all),count:dedupe(all).length,page:page+1});token=data?.serpapi_pagination?.next_page_token||null;if(!token)break}}
- if(!stream){try{for(const qp of queries)await collect(qp);const hotels=dedupe(all);return json({location,check_in:ci,check_out:co,adults,currency:"EUR",hotels,total_count:hotels.length,pages_requested:pages})}catch(e){return json({error:"Hotel search failed",details:e.message},502)}}
- const body=new ReadableStream({start(controller){const enc=new TextEncoder(),emit=o=>controller.enqueue(enc.encode(JSON.stringify(o)+"\n"));(async()=>{try{for(const qp of queries)await collect(qp,emit);emit({type:"done",hotels:dedupe(all),count:dedupe(all).length});controller.close()}catch(e){emit({type:"error",error:e.message});controller.close()}})()}});
+ if(!stream){try{for(const qp of queries)await collect(qp);let hotels=dedupe(all);if(q.searchParams.get("hydrate_stars")==="1")hotels=await hydrateMissingStars(hotels,env.SERPAPI_KEY,ci,co,adults);return json({location,check_in:ci,check_out:co,adults,currency:"EUR",hotels,total_count:hotels.length,pages_requested:pages})}catch(e){return json({error:"Hotel search failed",details:e.message},502)}}
+ const body=new ReadableStream({start(controller){const enc=new TextEncoder(),emit=o=>controller.enqueue(enc.encode(JSON.stringify(o)+"\n"));(async()=>{try{for(const qp of queries)await collect(qp,emit);let finalHotels=dedupe(all);if(q.searchParams.get("hydrate_stars")==="1")finalHotels=await hydrateMissingStars(finalHotels,env.SERPAPI_KEY,ci,co,adults);emit({type:"done",hotels:finalHotels,count:finalHotels.length});controller.close()}catch(e){emit({type:"error",error:e.message});controller.close()}})()}});
  return new Response(body,{status:200,headers:headers(true)})
 }
 export async function onRequestOptions(){return new Response(null,{status:204,headers:headers(false)})}
