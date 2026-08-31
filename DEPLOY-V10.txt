@@ -1,0 +1,5 @@
+S.M.B. Hotel Loyalty V10
+
+Upload/deploy the project with index.html, app.js, links.js and functions/api/hotels.js in the appropriate Cloudflare Pages structure.
+Required Cloudflare secret: SERPAPI_KEY
+Do not put API keys into frontend files.
