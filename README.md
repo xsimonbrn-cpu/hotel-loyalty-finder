@@ -1,42 +1,20 @@
-# S.M.B. HOTEL LOYALTY
+# S.M.B. Hotel Loyalty — V11
 
-Current app build with:
+Cloudflare Pages project.
 
-- Live Google Hotels search via SerpApi
-- Up to 20 pages / up to roughly 400 live properties when pagination is available
-- City, country and region searches such as `Frankfurt`, `Germany` or `Europe`
-- Loyalty-program expansion searches for Hilton, Marriott, IHG, Accor, Radisson, Meliá, GHA, Wyndham, WorldHotels and Best Western
-- Real hotel category / star filtering using Google Hotels `hotel_class`
-- Structured Pool / Spa / Sauna / Fitness / Breakfast / Parking / Restaurant / Bar filtering
-- Hotel programme, brand and personal status shown on every classified hotel
-- Personal points shown where a programme is detected and points are saved
-- Meaningful loyalty benefits prioritised: free breakfast, lounge, early/late check-out, upgrades and welcome gifts/amenities
-- Official hotel website links preferred from the Google Hotels property `link`
-- Additional booking-provider lookup through `/api/links`
-- Favorites with persistent local records and remove controls
-- Compare for up to three hotels with remove controls
-- Modern Leaflet/CARTO map
-- Pagination with 20 hotels per page
-- Local profile, loyalty status, points, saved filters and search defaults
+## Secrets
+Set these as Cloudflare Pages/Functions environment secrets — never put them in frontend files:
 
-## Cloudflare
+- `SERPAPI_KEY` — used by `functions/api/hotels.js`
+- `STAYAPI_KEY` — used by `functions/api/links.js`
 
-Set the secret:
+## Structure
+- `index.html` — app shell
+- `style.css` — UI
+- `app.js` — frontend state, filters, loyalty benefits, offers, favorites and compare
+- `functions/api/hotels.js` — Google Hotels / SerpApi search proxy
+- `functions/api/links.js` — StayAPI hotel metadata proxy
+- `logo.png` — S.M.B. logo
 
-`SERPAPI_KEY`
-
-Optional for additional booking-provider links:
-
-`STAYAPI_KEY`
-
-Deploy as a Cloudflare Pages project. The functions live in `functions/api/`.
-
-## Important search behaviour
-
-Google Hotels returns a finite ranked result set. The app now follows the `next_page_token` repeatedly and can request up to 20 pages. For a single loyalty programme or amenity filter, the app also expands the live query (for example `Germany Hilton hotels` or `Germany hotels with sauna`) and applies the exact structured filter to the returned properties.
-
-This gives substantially broader coverage, but no third-party search API can guarantee a literal census of every hotel in a whole continent in one request.
-
-## Local accounts
-
-The current account/profile is local to the browser. A real multi-device authentication/database layer can be added later without replacing the UI architecture.
+## V11 personal offers
+Amex Offers are stored locally in the browser. A user can add an offer such as `€200 spend → €50 back`, edit it, activate/deactivate it and remove it. The MeliáRewards 20% personal offer is also available as a toggle. Active offers are used in the effective-price calculation only where the offer matches and its spend threshold is met.

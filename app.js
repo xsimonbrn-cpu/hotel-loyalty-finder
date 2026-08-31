@@ -28,12 +28,15 @@ const BENEFITS={
 
 const DEFAULT_STATUSES=Object.fromEntries(Object.entries(PROGRAM_DATA).map(([p,v])=>[p,v.default]));
 const savedStatuses=JSON.parse(localStorage.getItem("smb-statuses")||"null");
+const savedOffers=JSON.parse(localStorage.getItem("smb-offers")||"null");
+const DEFAULT_OFFERS=[{id:"melia20",type:"melia",name:"Meliá",spend:0,cashback:20,active:false}];
 const state={
   hotels:[],filtered:[],page:1,perPage:20,loading:false,
   programs:new Set(),amenities:new Set(),minStars:0,onlyBenefits:false,onlyOffers:false,
   statuses:{...DEFAULT_STATUSES,...(savedStatuses||{})},
   favorites:new Set(JSON.parse(localStorage.getItem("smb-favorites")||"[]")),
   compare:new Set(JSON.parse(localStorage.getItem("smb-compare")||"[]")),
+  offers:Array.isArray(savedOffers)?savedOffers:DEFAULT_OFFERS,
   map:null,markers:[],mapReady:false
 };
 const $=id=>document.getElementById(id);
@@ -46,6 +49,7 @@ function save(){
   localStorage.setItem("smb-favorites",JSON.stringify([...state.favorites]));
   localStorage.setItem("smb-compare",JSON.stringify([...state.compare]));
   localStorage.setItem("smb-statuses",JSON.stringify(state.statuses));
+  localStorage.setItem("smb-offers",JSON.stringify(state.offers));
   $("favCount").textContent=state.favorites.size;$("compareCount").textContent=state.compare.size;
 }
 function benefits(h){return BENEFITS[h.program]?.[state.statuses[h.program]||PROGRAM_DATA[h.program]?.default]||[]}
@@ -55,9 +59,29 @@ function benefitScore(h){
   if(/lounge/.test(b))s+=80;if(/early check|late check/.test(b))s+=60;
   if(/upgrade/.test(b))s+=50;if(/welcome gift|welcome amenity/.test(b))s+=30;return s;
 }
+function totalPrice(h){return Number(h.price?.total??0)||0}
+function activeOfferFor(h){
+  const name=norm(`${h.name} ${h.brand||""} ${h.program||""}`);
+  const active=state.offers.filter(o=>o.active);
+  let discount=0,details=[];
+  for(const o of active){
+    const target=norm(o.name||"");
+    if(o.type==="melia" && /melia/.test(name)){
+      const pct=Number(o.cashback)||20; details.push(`${pct}% Meliá offer`);
+      if(totalPrice(h)>0) discount=Math.max(discount,totalPrice(h)*pct/100);
+    }
+    if(o.type==="amex" && target && (name.includes(target)||target.includes(norm(h.brand||""))||target.includes(norm(h.name)))){
+      const spend=Number(o.spend)||0,back=Number(o.cashback)||0;
+      if(back>0){details.push(`Amex: €${back} back after €${spend} spend`); if(totalPrice(h)>=spend) discount+=back;}
+    }
+  }
+  return {discount,details};
+}
 function enrich(h){
-  const total=h.price?.total??null,night=h.price?.night??null,b=benefits(h);
-  return {...h,benefits:b,effective:total,effectiveNightly:night,
+  const total=h.price?.total??null,night=h.price?.night??null,b=benefits(h),offer=activeOfferFor(h);
+  const effective=total!=null?Math.max(0,total-offer.discount):total;
+  const effectiveNightly=effective!=null?effective/Math.max(1,dates().n):night;
+  return {...h,benefits:b,offerDetails:offer.details,effective,effectiveNightly,
     available:Boolean(h.price?.available&&((total??0)>0||(night??0)>0)),benefitScore:benefitScore(h),
     amenitySet:new Set((h.amenities||[]).map(norm))
   };
@@ -68,7 +92,11 @@ function passes(h){
   if(state.amenities.size&&!([...state.amenities].every(a=>hasAmenity(h,a))))return false;
   if(state.minStars&&!(Number(h.stars)>=state.minStars))return false;
   if(state.onlyBenefits&&!h.benefits.length)return false;
-  if(state.onlyOffers&&!h.sponsored&&!h.official_url)return false;
+  if(state.onlyOffers){
+    const n=norm(`${h.name} ${h.brand||""} ${h.program||""}`);
+    const hasActive=state.offers.some(o=>o.active && ((o.type==="melia"&&/melia/.test(n)) || (o.type==="amex"&&norm(o.name||"")&&(n.includes(norm(o.name))||norm(o.name).includes(norm(h.brand||""))))));
+    if(!hasActive)return false;
+  }
   return true;
 }
 function applyFilters(reset=true){state.filtered=state.hotels.map(enrich).filter(passes);if(reset)state.page=1;render()}
@@ -101,13 +129,29 @@ function card(h){
   return `<article class="hotel ${h.available?"":"is-unavailable"}"><div class="gallery">${imgs[idx]?`<img src="${esc(imgs[idx])}" alt="${esc(h.name)}" loading="lazy" referrerpolicy="no-referrer">`:`<div class="image-empty">No image</div>`}${imgs.length>1?`<button class="gallery-btn prev" data-prev="${id}">‹</button><button class="gallery-btn next" data-next="${id}">›</button><span class="dots">${idx+1} / ${imgs.length}</span>`:""}</div>
   <div class="hotel-main"><h3 class="hotel-name">${esc(h.name)}</h3><div class="hotel-sub"><span class="programme">${esc(h.program||"Independent")}</span>${h.brand?`<span>${esc(h.brand)}</span>`:""}${h.program&&state.statuses[h.program]?`<span>${esc(state.statuses[h.program])}</span>`:""}</div>
   <div class="hotel-meta">${starsMarkup(h)}${h.rating!=null?`<span>Guest rating ${Number(h.rating).toFixed(1)}${h.reviews?` · ${Number(h.reviews).toLocaleString()}`:""}</span>`:""}${h.address?`<span>${esc(h.address)}</span>`:""}</div>
-  <div class="amenities">${(h.amenities||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div><div class="benefits">${h.benefits.map(x=>`<span class="chip benefit-chip">${esc(x)}</span>`).join("")}${points!=null?`<span class="chip points-chip">${esc(points)} points</span>`:""}</div></div>
+  <div class="amenities">${(h.amenities||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div><div class="benefits">${h.benefits.map(x=>`<span class="chip benefit-chip">${esc(x)}</span>`).join("")}${(h.offerDetails||[]).map(x=>`<span class="chip points-chip">${esc(x)}</span>`).join("")}${points!=null?`<span class="chip points-chip">${esc(points)} points</span>`:""}</div></div>
   <div class="hotel-price">${price}<div class="actions">${h.official_url?`<a href="${esc(h.official_url)}" target="_blank" rel="noopener noreferrer">Hotel website ↗</a>`:""}${h.booking_url?`<a href="${esc(h.booking_url)}" target="_blank" rel="noopener noreferrer">Book ↗</a>`:""}<button class="fav ${fav?"active":""}" data-fav="${id}">${fav?"Saved":"Save"}</button><button class="compare ${cmp?"active":""}" data-compare="${id}">${cmp?"Compared":"Compare"}</button></div></div></article>`
 }
 function pagination(p){if(p<=1){$("pagination").innerHTML="";return}const c=state.page,nums=[...new Set([1,p,c,c-1,c+1].filter(n=>n>=1&&n<=p))].sort((a,b)=>a-b),o=[];let last=0;for(const n of nums){if(last&&n-last>1)o.push(`<span class="page-gap">…</span>`);o.push(`<button class="${n===c?"active":""}" data-page="${n}">${n}</button>`);last=n}$("pagination").innerHTML=`<button class="page-arrow" data-page="${Math.max(1,c-1)}" ${c===1?"disabled":""}>←</button>${o.join("")}<button class="page-arrow" data-page="${Math.min(p,c+1)}" ${c===p?"disabled":""}>→</button>`}
 function buildStatusFields(){
   $("statusFields").innerHTML=Object.entries(PROGRAM_DATA).map(([p,v])=>`<label class="status-field"><span>${esc(p)}</span><select data-status="${esc(p)}">${v.statuses.map(s=>`<option ${state.statuses[p]===s?"selected":""}>${esc(s)}</option>`).join("")}</select></label>`).join("");
   document.querySelectorAll("[data-status]").forEach(s=>s.onchange=()=>{state.statuses[s.dataset.status]=s.value;applyFilters(false)})
+}
+function renderOffers(){
+  const wrap=$("offerFields"); if(!wrap)return;
+  wrap.innerHTML=state.offers.map(o=>`<div class="offer-card ${o.type==="melia"?"melia":""}">
+    <div class="offer-card-head"><span class="offer-card-title">${esc(o.type==="melia"?"MeliáRewards · 20% offer":"Amex Offer")}</span><button class="offer-delete" type="button" data-delete-offer="${esc(o.id)}">Remove</button></div>
+    ${o.type==="melia"?`<div class="offer-summary">Personal 20% offer · activate or deactivate it anytime.</div>`:`<div class="offer-card-grid"><label>Merchant / match<input data-offer-field="name" data-offer-id="${esc(o.id)}" value="${esc(o.name||"")}" placeholder="e.g. Hilton"></label><label>Spend €<input type="number" min="0" step="1" data-offer-field="spend" data-offer-id="${esc(o.id)}" value="${Number(o.spend)||0}"></label><label>Get back €<input type="number" min="0" step="1" data-offer-field="cashback" data-offer-id="${esc(o.id)}" value="${Number(o.cashback)||0}"></label></div>`}
+    <label class="offer-toggle"><input type="checkbox" data-offer-active="${esc(o.id)}" ${o.active?"checked":""}> Use this offer in calculations</label>
+  </div>`).join("");
+}
+function addAmexOffer(){state.offers.push({id:`amex-${Date.now()}`,type:"amex",name:"",spend:200,cashback:50,active:true});renderOffers();save();applyFilters(false)}
+function addMeliaOffer(){let o=state.offers.find(x=>x.type==="melia");if(!o){o={id:`melia-${Date.now()}`,type:"melia",name:"Meliá",spend:0,cashback:20,active:true};state.offers.push(o)}else o.active=true;renderOffers();save();applyFilters(false)}
+function setupOfferEvents(){
+  renderOffers();
+  $("addOffer")?.addEventListener("click",addAmexOffer); $("addMelia")?.addEventListener("click",addMeliaOffer);
+  $("offerFields")?.addEventListener("change",e=>{const a=e.target.closest("[data-offer-active]"),f=e.target.closest("[data-offer-field]"); if(a){const o=state.offers.find(x=>x.id===a.dataset.offerActive);if(o)o.active=a.checked;save();applyFilters(false)} if(f){const o=state.offers.find(x=>x.id===f.dataset.offerId);if(o){o[f.dataset.offerField]=f.type==="number"?Number(f.value):f.value;save();applyFilters(false)}}});
+  $("offerFields")?.addEventListener("click",e=>{const b=e.target.closest("[data-delete-offer]");if(!b)return;state.offers=state.offers.filter(o=>o.id!==b.dataset.deleteOffer);save();renderOffers();applyFilters(false)})
 }
 function setupFilters(){
   document.querySelectorAll("#programFilters input").forEach(x=>x.onchange=()=>x.checked?state.programs.add(x.value):state.programs.delete(x.value));
@@ -155,4 +199,4 @@ $("searchButton").onclick=search;$("openFilters").onclick=()=>$("filterDrawer").
 $("sort").onchange=render;$("mapToggle").onclick=()=>{$("mapWrap").classList.toggle("hidden");if(!$("mapWrap").classList.contains("hidden")){initMap();setTimeout(()=>state.map?.invalidateSize(),100)}};
 $("favoritesToggle").onclick=()=>{state.filtered=state.hotels.map(enrich).filter(h=>state.favorites.has(String(h.hotel_id)));state.page=1;render()};
 $("compareToggle").onclick=showCompare;$("closeCompare").onclick=()=>$("compareDrawer").classList.add("hidden");
-initDates();setupFilters();save();render();
+initDates();setupFilters();setupOfferEvents();save();render();
