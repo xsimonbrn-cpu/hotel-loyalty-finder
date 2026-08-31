@@ -1,4 +1,4 @@
-# S.M.B. Hotel Loyalty — V11
+# S.M.B. Hotel Loyalty — V12
 
 Cloudflare Pages project.
 
@@ -16,5 +16,5 @@ Set these as Cloudflare Pages/Functions environment secrets — never put them i
 - `functions/api/links.js` — StayAPI hotel metadata proxy
 - `logo.png` — S.M.B. logo
 
-## V11 personal offers
+## V12 personal offers
 Amex Offers are stored locally in the browser. A user can add an offer such as `€200 spend → €50 back`, edit it, activate/deactivate it and remove it. The MeliáRewards 20% personal offer is also available as a toggle. Active offers are used in the effective-price calculation only where the offer matches and its spend threshold is met.

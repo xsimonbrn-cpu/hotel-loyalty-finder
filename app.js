@@ -59,29 +59,50 @@ function benefitScore(h){
   if(/lounge/.test(b))s+=80;if(/early check|late check/.test(b))s+=60;
   if(/upgrade/.test(b))s+=50;if(/welcome gift|welcome amenity/.test(b))s+=30;return s;
 }
-function totalPrice(h){return Number(h.price?.total??0)||0}
+function stayNights(){return Math.max(1,dates().n)}
+function baseStayTotal(h){
+  const total=Number(h.price?.total);
+  if(Number.isFinite(total)&&total>0)return total;
+  const night=Number(h.price?.night);
+  if(Number.isFinite(night)&&night>0)return night*stayNights();
+  return null;
+}
+function offerMatchesHotel(o,h){
+  const target=norm(o.name||"");
+  if(!target)return false;
+  const fields=[h.name,h.brand,h.program,h.chain].map(norm).filter(Boolean);
+  if(fields.some(v=>v===target||v.includes(target)||target.includes(v)))return true;
+  const parts=target.split(/[^a-z0-9]+/).filter(x=>x.length>=3);
+  return parts.length>0 && parts.every(part=>fields.some(v=>v.includes(part)));
+}
 function activeOfferFor(h){
-  const name=norm(`${h.name} ${h.brand||""} ${h.program||""}`);
+  const hotelText=norm(`${h.name} ${h.brand||""} ${h.program||""}`);
   const active=state.offers.filter(o=>o.active);
-  let discount=0,details=[];
+  let discount=0,details=[],applied=[];
   for(const o of active){
-    const target=norm(o.name||"");
-    if(o.type==="melia" && /melia/.test(name)){
-      const pct=Number(o.cashback)||20; details.push(`${pct}% Meliá offer`);
-      if(totalPrice(h)>0) discount=Math.max(discount,totalPrice(h)*pct/100);
+    const base=baseStayTotal(h);
+    if(base==null)continue;
+    if(o.type==="melia" && /melia/.test(hotelText)){
+      const pct=Math.max(0,Math.min(100,Number(o.cashback)||20));
+      const saving=base*pct/100;
+      if(saving>0){discount+=saving;details.push(`Meliá: ${pct}% back · −€${Math.round(saving)}`);applied.push({name:"Meliá",saving,type:"melia"});}
+      continue;
     }
-    if(o.type==="amex" && target && (name.includes(target)||target.includes(norm(h.brand||""))||target.includes(norm(h.name)))){
-      const spend=Number(o.spend)||0,back=Number(o.cashback)||0;
-      if(back>0){details.push(`Amex: €${back} back after €${spend} spend`); if(totalPrice(h)>=spend) discount+=back;}
+    if(o.type==="amex" && offerMatchesHotel(o,h)){
+      const spend=Math.max(0,Number(o.spend)||0),back=Math.max(0,Number(o.cashback)||0);
+      if(back>0 && base>=spend){discount+=Math.min(back,base);details.push(`Amex: €${Math.round(back)} back after €${Math.round(spend)} spend · −€${Math.round(Math.min(back,base))}`);applied.push({name:o.name,saving:Math.min(back,base),type:"amex"});}
+      else if(back>0){details.push(`Amex: €${Math.round(back)} back after €${Math.round(spend)} spend`);}
     }
   }
-  return {discount,details};
+  return {discount,details,applied};
 }
 function enrich(h){
-  const total=h.price?.total??null,night=h.price?.night??null,b=benefits(h),offer=activeOfferFor(h);
-  const effective=total!=null?Math.max(0,total-offer.discount):total;
-  const effectiveNightly=effective!=null?effective/Math.max(1,dates().n):night;
-  return {...h,benefits:b,offerDetails:offer.details,effective,effectiveNightly,
+  const totalRaw=Number(h.price?.total),nightRaw=Number(h.price?.night),nights=stayNights();
+  const total=Number.isFinite(totalRaw)&&totalRaw>0?totalRaw:(Number.isFinite(nightRaw)&&nightRaw>0?nightRaw*nights:null);
+  const night=Number.isFinite(nightRaw)&&nightRaw>0?nightRaw:(total!=null?total/nights:null);
+  const b=benefits(h),offer=activeOfferFor(h),effective=total!=null?Math.max(0,total-offer.discount):null;
+  const effectiveNightly=effective!=null?effective/nights:night;
+  return {...h,nights,originalTotal:total,originalNightly:night,benefits:b,offerDetails:offer.details,offerSavings:offer.discount,appliedOffers:offer.applied,effective,effectiveNightly,
     available:Boolean(h.price?.available&&((total??0)>0||(night??0)>0)),benefitScore:benefitScore(h),
     amenitySet:new Set((h.amenities||[]).map(norm))
   };
@@ -121,11 +142,11 @@ function render(){
   pagination(pages);updateMap(slice);$("activeFilterCount").textContent=state.programs.size+state.amenities.size+(state.minStars?1:0)+(state.onlyBenefits?1:0)+(state.onlyOffers?1:0);save();
 }
 function loadingCards(){return Array.from({length:5},()=>`<article class="hotel skeleton-card"><div class="skeleton skeleton-image"></div><div class="hotel-main"><div class="skeleton skeleton-line wide"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-block"></div></div><div class="hotel-price"><div class="skeleton skeleton-price"></div><div class="skeleton skeleton-button"></div></div></article>`).join("")}
-function starsMarkup(h){if(h.stars==null)return `<span class="stars-missing">Star class unavailable</span>`;const n=Math.max(0,Math.min(5,Math.round(Number(h.stars))));return `<span class="hotel-stars">${"★".repeat(n)}${"☆".repeat(5-n)}</span><span>${n}★ hotel class</span>`}
+function starsMarkup(h){const n=Number(h.stars);if(!Number.isFinite(n)||n<=0)return `<span class="stars-missing">Hotel class unavailable</span>`;const whole=Math.max(0,Math.min(5,Math.round(n)));return `<span class="hotel-stars" aria-label="${whole} star hotel">${"★".repeat(whole)}${"☆".repeat(5-whole)}</span><strong>${whole}★</strong><span>hotel class</span>`}
 function card(h){
   const idx=h._imageIndex||0,fav=state.favorites.has(String(h.hotel_id)),cmp=state.compare.has(String(h.hotel_id)),imgs=h.images||[],id=esc(h.hotel_id);
   const points=h.points??h.loyalty_points??h.reward_points;
-  const price=h.available?`<div><div class="price-status">Effective stay</div><div class="price">€${Math.round(h.effective)}</div><div class="nightly">€${Math.round(h.effectiveNightly??0)} / night</div></div>`:`<div><div class="price-status">${h.price?.total===0?"Ausgebucht":"Nicht verfügbar"}</div><div class="unavailable">${h.price?.total===0?"No rooms available":"No live price"}</div></div>`;
+  const price=h.available?`<div><div class="price-status">Effective stay · ${h.nights} ${h.nights===1?"night":"nights"}</div><div class="price">€${Math.round(h.effective)}</div><div class="nightly">€${Number(h.effectiveNightly??0).toFixed(2)} / night</div>${h.offerSavings>0?`<div class="price-original">Original €${Math.round(h.originalTotal)} · offers −€${Math.round(h.offerSavings)}</div>`:`<div class="price-original">Original €${Math.round(h.originalTotal??0)}</div>`}</div>`:`<div><div class="price-status">${h.price?.total===0?"Ausgebucht":"Nicht verfügbar"}</div><div class="unavailable">${h.price?.total===0?"No rooms available":"No live price"}</div></div>`;
   return `<article class="hotel ${h.available?"":"is-unavailable"}"><div class="gallery">${imgs[idx]?`<img src="${esc(imgs[idx])}" alt="${esc(h.name)}" loading="lazy" referrerpolicy="no-referrer">`:`<div class="image-empty">No image</div>`}${imgs.length>1?`<button class="gallery-btn prev" data-prev="${id}">‹</button><button class="gallery-btn next" data-next="${id}">›</button><span class="dots">${idx+1} / ${imgs.length}</span>`:""}</div>
   <div class="hotel-main"><h3 class="hotel-name">${esc(h.name)}</h3><div class="hotel-sub"><span class="programme">${esc(h.program||"Independent")}</span>${h.brand?`<span>${esc(h.brand)}</span>`:""}${h.program&&state.statuses[h.program]?`<span>${esc(state.statuses[h.program])}</span>`:""}</div>
   <div class="hotel-meta">${starsMarkup(h)}${h.rating!=null?`<span>Guest rating ${Number(h.rating).toFixed(1)}${h.reviews?` · ${Number(h.reviews).toLocaleString()}`:""}</span>`:""}${h.address?`<span>${esc(h.address)}</span>`:""}</div>
@@ -170,7 +191,7 @@ async function search(){
   const city=$("city").value.trim(),{a,b}=dates();if(!city||!a||!b||b<=a)return alert("Please enter a valid location and dates.");
   $("searchButton").disabled=true;$("searchButton").textContent="Searching";state.loading=true;state.hotels=[];state.filtered=[];state.page=1;render();
   try{
-    const u=new URLSearchParams({location:city,check_in:a,check_out:b,adults:$("guests").value,pages:"10",stream:"1"});
+    const u=new URLSearchParams({location:city,check_in:a,check_out:b,adults:$("guests").value,pages:"10",stream:"1",hydrate_stars:"1"});
     const r=await fetch(`${API_URL}?${u}`);if(!r.ok)throw Error("Hotel search failed.");
     const reader=r.body?.getReader();if(!reader)throw Error("Search stream unavailable.");
     const decoder=new TextDecoder();let buffer="";
@@ -185,7 +206,7 @@ function updateMap(a){if(!state.map)return;state.markers.forEach(m=>m.remove());
 function initMap(){if(!window.L||state.mapReady)return;state.map=L.map("map",{zoomControl:false}).setView([50.11,8.68],11);L.control.zoom({position:"bottomright"}).addTo(state.map);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors",maxZoom:19}).addTo(state.map);state.mapReady=true}
 function showCompare(){
   const a=state.hotels.map(enrich).filter(h=>state.compare.has(String(h.hotel_id)));if(!a.length){$("compareDrawer").classList.add("hidden");return alert("Add 2–3 hotels to Compare first.")}
-  $("compareContent").innerHTML=`<div class="compare-grid">${a.map(h=>`<div class="compare-col"><div class="compare-top">${h.thumbnail?`<img src="${esc(h.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}<button class="remove-btn" data-remove-compare="${esc(h.hotel_id)}">×</button></div><h3>${esc(h.name)}</h3><p>${esc(h.program||"Independent")}${h.brand?` · ${esc(h.brand)}`:""}</p><div class="compare-row"><span class="compare-label">Hotel class</span>${h.stars??"—"}★</div><div class="compare-row"><span class="compare-label">Price</span>${h.available?`€${Math.round(h.effective)} · €${Math.round(h.effectiveNightly??0)}/night`:"Not available"}</div><div class="compare-row"><span class="compare-label">Benefits</span>${esc(h.benefits.join(" · ")||"—")}</div><div class="compare-row"><span class="compare-label">Amenities</span>${esc((h.amenities||[]).join(" · ")||"—")}</div><div class="compare-row"><span class="compare-label">Points</span>${esc(h.points??h.loyalty_points??h.reward_points??"—")}</div></div>`).join("")}</div>`;
+  $("compareContent").innerHTML=`<div class="compare-grid">${a.map(h=>`<div class="compare-col"><div class="compare-top">${h.thumbnail?`<img src="${esc(h.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}<button class="remove-btn" data-remove-compare="${esc(h.hotel_id)}">×</button></div><h3>${esc(h.name)}</h3><p>${esc(h.program||"Independent")}${h.brand?` · ${esc(h.brand)}`:""}</p><div class="compare-row"><span class="compare-label">Hotel class</span>${h.stars??"—"}★</div><div class="compare-row"><span class="compare-label">Price</span>${h.available?`€${Math.round(h.effective)} · ${h.nights} ${h.nights===1?"night":"nights"} · €${Number(h.effectiveNightly??0).toFixed(2)}/night${h.offerSavings>0?` · −€${Math.round(h.offerSavings)} offers`:""}`:"Not available"}</div><div class="compare-row"><span class="compare-label">Benefits</span>${esc(h.benefits.join(" · ")||"—")}</div><div class="compare-row"><span class="compare-label">Amenities</span>${esc((h.amenities||[]).join(" · ")||"—")}</div><div class="compare-row"><span class="compare-label">Points</span>${esc(h.points??h.loyalty_points??h.reward_points??"—")}</div></div>`).join("")}</div>`;
   $("compareDrawer").classList.remove("hidden")
 }
 document.addEventListener("click",e=>{
